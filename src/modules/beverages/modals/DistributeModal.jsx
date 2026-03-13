@@ -177,6 +177,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
             return (
               <div
                 key={p.id}
+                className="modal-product-row"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '10px 12px', borderRadius: 8,
@@ -186,16 +187,16 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: over ? '#dc2626' : 'var(--text)' }}>{p.name}</div>
-                  <div style={{ fontSize: 12, marginTop: 2, color: stock === 0 ? '#dc2626' : 'var(--sub)', fontWeight: stock === 0 ? 600 : 400 }}>
+                  <div className="product-row-name" style={{ fontWeight: 600, fontSize: 14, color: over ? '#dc2626' : 'var(--text)' }}>{p.name}</div>
+                  <div className="product-row-sub" style={{ fontSize: 12, marginTop: 2, color: stock === 0 ? '#dc2626' : 'var(--sub)', fontWeight: stock === 0 ? 600 : 400 }}>
                     {stock === 0 ? '⚠ out of stock' : `${stock} in cage`}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button onClick={() => setQty(p.id, qty - 1)} disabled={qty === 0}
+                  <button className="stepper-btn" onClick={() => setQty(p.id, qty - 1)} disabled={qty === 0}
                     style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 18, cursor: qty === 0 ? 'default' : 'pointer', color: qty === 0 ? 'var(--sub)' : 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                  <span style={{ width: 28, textAlign: 'center', fontWeight: 700, fontSize: 16, color: over ? '#dc2626' : active ? '#2563eb' : 'var(--sub)' }}>{qty}</span>
-                  <button onClick={() => setQty(p.id, qty + 1)}
+                  <span className="stepper-qty" style={{ width: 28, textAlign: 'center', fontWeight: 700, fontSize: 16, color: over ? '#dc2626' : active ? '#2563eb' : 'var(--sub)' }}>{qty}</span>
+                  <button className="stepper-btn" onClick={() => setQty(p.id, qty + 1)}
                     style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 18, cursor: 'pointer', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                 </div>
               </div>

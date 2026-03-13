@@ -631,8 +631,51 @@ body {
     max-height: 88vh;
     width: 100%;
     max-width: 100%;
-    padding: 20px 16px 32px;
+    padding: 0 16px 32px;
   }
+
+  /* Drag handle */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 4px;
+  }
+
+  /* Sticky modal header while scrolling */
+  .modal-header {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+    padding: 14px 0 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  /* Full-width footer buttons */
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light);
+    flex-direction: row;
+    gap: 8px;
+  }
+  .modal-footer .btn { flex: 1; justify-content: center; }
+
+  /* Compact product rows inside modals */
+  .modal-product-row {
+    padding: 8px 10px !important;
+  }
+  .modal-product-row .product-row-name { font-size: 13px !important; }
+  .modal-product-row .product-row-sub  { font-size: 11px !important; }
+  .stepper-btn { width: 28px !important; height: 28px !important; font-size: 16px !important; }
+  .stepper-qty  { width: 24px !important; font-size: 14px !important; }
 
   /* Card action buttons */
   .row-actions { gap: 6px; }

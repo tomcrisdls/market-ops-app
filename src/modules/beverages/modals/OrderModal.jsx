@@ -79,6 +79,7 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
             return (
               <div
                 key={p.id}
+                className="modal-product-row"
                 style={{
                   display:         'flex',
                   alignItems:      'center',
@@ -92,8 +93,8 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
               >
                 {/* Left: name + stock */}
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{p.name}</div>
-                  <div style={{ fontSize: 12, marginTop: 2, color: outOfStock ? '#dc2626' : 'var(--sub)', fontWeight: outOfStock ? 600 : 400 }}>
+                  <div className="product-row-name" style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{p.name}</div>
+                  <div className="product-row-sub" style={{ fontSize: 12, marginTop: 2, color: outOfStock ? '#dc2626' : 'var(--sub)', fontWeight: outOfStock ? 600 : 400 }}>
                     {outOfStock ? '⚠ out of stock' : `${stock} in cage`}
                   </div>
                 </div>
@@ -101,6 +102,7 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
                 {/* Right: stepper */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
+                    className="stepper-btn"
                     onClick={() => setQty(p.id, qty - 1)}
                     disabled={qty === 0}
                     style={{
@@ -112,12 +114,13 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
                       lineHeight: 1,
                     }}
                   >−</button>
-                  <span style={{
+                  <span className="stepper-qty" style={{
                     width: 28, textAlign: 'center',
                     fontWeight: 700, fontSize: 16,
                     color: active ? '#2563eb' : 'var(--sub)',
                   }}>{qty}</span>
                   <button
+                    className="stepper-btn"
                     onClick={() => setQty(p.id, qty + 1)}
                     style={{
                       width: 32, height: 32, borderRadius: 8,
