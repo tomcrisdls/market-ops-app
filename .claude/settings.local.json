@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(/bin/bash -c \"command -v brew\")",
+      "Bash(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)",
+      "Bash(bash)",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash(source \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install:*)",
+      "Bash(bash --login -c 'export NVM_DIR=\"\"$HOME/.nvm\"\"; source \"\"$NVM_DIR/nvm.sh\"\"; nvm install --lts 2>&1 | tail -8')",
+      "Bash(bash --login -c 'export NVM_DIR=\"\"$HOME/.nvm\"\"; source \"\"$NVM_DIR/nvm.sh\"\"; node --version && npm --version')",
+      "Bash(bash --login -c 'export NVM_DIR=\"\"$HOME/.nvm\"\"; source \"\"$NVM_DIR/nvm.sh\"\"; cd \"\"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app\"\" && npm install 2>&1 | tail -5')",
+      "Bash(bash --login -c 'export NVM_DIR=\"\"$HOME/.nvm\"\"; source \"\"$NVM_DIR/nvm.sh\"\"; cd \"\"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app\"\" && npm install 2>&1 | grep -E \"\"added|error|warn\"\" | head -5')",
+      "Bash(bash --login -c 'export NVM_DIR=\"\"$HOME/.nvm\"\"; source \"\"$NVM_DIR/nvm.sh\"\"; which npm')",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(~/.nvm/versions/node/v24.14.0/bin/node --version)",
+      "Bash(~/.nvm/versions/node/v24.14.0/bin/npm install:*)",
+      "Bash(PATH=\"$HOME/.nvm/versions/node/v24.14.0/bin:$PATH\" npm install @anthropic-ai/sdk --prefix \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app\")",
+      "Bash(export PATH=\"$HOME/.nvm/versions/node/v24.14.0/bin:$PATH\")",
+      "Bash(ls \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/.env\"*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
