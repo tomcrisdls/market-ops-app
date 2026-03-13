@@ -212,7 +212,7 @@ export function BeverageModule() {
 
       {/* Date navigation — hidden on Tracker (uses rolling windows) and Inventory */}
       {activeTab !== 'tracker' && activeTab !== 'inventory' && (
-        <div style={{ padding: '0 24px' }}>
+        <div className="date-nav-wrapper" style={{ padding: '0 20px' }}>
           <DateNav date={activeDate} onChange={setActiveDate} />
         </div>
       )}
