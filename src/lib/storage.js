@@ -315,6 +315,8 @@ export async function patchInvoiceStatus(id, status) {
 }
 
 export async function removeInvoice(id) {
+  const { error: itemsError } = await supabase.from('invoice_items').delete().eq('invoice_id', id)
+  if (itemsError) throw itemsError
   const { error } = await supabase.from('invoices').delete().eq('id', id)
   if (error) throw error
 }
