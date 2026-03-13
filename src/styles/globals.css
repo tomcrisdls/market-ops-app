@@ -668,6 +668,18 @@ body {
   }
   .modal-footer .btn { flex: 1; justify-content: center; }
 
+  /* Small/centered modals (e.g. confirm dialogs) — stay centered, not bottom sheet */
+  .modal-overlay:has(.modal-sm) {
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-sm {
+    border-radius: var(--radius-lg) !important;
+    width: auto !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+  .modal-sm::before { display: none; }
+
   /* Compact product rows inside modals */
   .modal-product-row {
     padding: 8px 10px !important;

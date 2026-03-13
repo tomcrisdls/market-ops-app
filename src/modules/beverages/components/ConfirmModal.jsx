@@ -30,7 +30,7 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confi
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{
+      <div className="modal modal-sm" style={{
         maxWidth: 380,
         borderTop: `3px solid ${style.border}`,
         textAlign: 'center',
