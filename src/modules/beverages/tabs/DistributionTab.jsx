@@ -107,7 +107,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
       ) : (
         <>
           {/* Day summary */}
-          <div style={{
+          <div className="dist-summary-bar" style={{
             display:        'flex',
             alignItems:     'center',
             gap:            16,
@@ -124,7 +124,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                 {invoicedCount} of {invoiceableCount} invoiced
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="dist-summary-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {pendingInvoiceCount > 0 && (
                 <button className="btn btn-sm btn-success" onClick={onInvoiceAll}>
                   ⚡ Invoice All ({pendingInvoiceCount})
@@ -132,7 +132,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
               )}
               {distributions.length > 1 && (
                 <button
-                  className={`btn btn-sm ${printAllOpen ? 'btn-secondary' : 'btn-ghost'}`}
+                  className={`btn btn-sm mobile-print-hidden ${printAllOpen ? 'btn-secondary' : 'btn-ghost'}`}
                   onClick={() => setPrintAllOpen(p => !p)}
                 >
                   🖨 {printAllOpen ? 'Hide All' : `Print All (${distributions.length})`}
@@ -246,7 +246,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                       </button>
                     )}
                     <button
-                      className={`btn btn-sm ${isPrinting ? 'btn-secondary' : 'btn-ghost'}`}
+                      className={`btn btn-sm mobile-print-hidden ${isPrinting ? 'btn-secondary' : 'btn-ghost'}`}
                       onClick={() => {
                         const opening = activePrintId !== dist.id
                         setActivePrintId(opening ? dist.id : null)

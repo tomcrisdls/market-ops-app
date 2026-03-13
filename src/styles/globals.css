@@ -574,10 +574,53 @@ body {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {
-  .screen { padding: 16px 16px 80px; }
-  .header { padding: 0 16px; }
-  .tabs { padding: 0 8px; }
+  /* Layout */
+  .screen { padding: 14px 14px 80px; }
+  .header { padding: 0 14px; }
   .grid-2 { grid-template-columns: 1fr; }
-  .modal { padding: 20px; }
+  .modal { padding: 18px; }
   .official-invoice { padding: 24px 20px; }
+
+  /* Header — hide subtitle on mobile, logo is enough */
+  .header-sep,
+  .header-title { display: none; }
+
+  /* Tab bar — hide scrollbar, keep swipe */
+  .tabs, .module-nav {
+    padding: 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar,
+  .module-nav::-webkit-scrollbar { display: none; }
+  .tab { padding: 13px 14px; font-size: 12px; }
+  .module-tab { padding: 12px 14px; font-size: 12px; }
+
+  /* Actions bar — stack pills above button */
+  .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  /* Filter pills — horizontal scroll, no wrap */
+  .filter-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
+
+  /* Card action buttons — wrap, full tap targets */
+  .row-actions { gap: 7px; }
+  .row-actions .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  /* Hide print-only actions on mobile */
+  .mobile-print-hidden { display: none !important; }
+
+  /* Summary bar — tighten up */
+  .dist-summary-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .dist-summary-actions { width: 100%; }
 }
