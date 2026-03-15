@@ -226,9 +226,9 @@ function ReorderView({ distributions, inventory }) {
                 {avg === 0 ? (
                   <span style={{ color: 'var(--sub)', fontSize: 12 }}>No data</span>
                 ) : needsOrder ? (
-                  <span style={{ color: '#dc2626', fontWeight: 600, fontSize: 12 }}>⚠ Order</span>
+                  <span className="badge badge-reorder-order">⚠ Order</span>
                 ) : (
-                  <span style={{ color: '#16a34a', fontSize: 12 }}>✓ OK</span>
+                  <span className="badge badge-reorder-ok">✓ OK</span>
                 )}
               </td>
             </tr>

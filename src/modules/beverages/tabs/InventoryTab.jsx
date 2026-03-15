@@ -93,8 +93,18 @@ export function InventoryTab({ inventory, deliveries, distributions, onLogDelive
                   </td>
                   <td style={{ color: 'var(--sub)' }}>{p.vendor}</td>
                   <td>
-                    <span className={`stock-num${low ? ' low' : ''}`}>{qty}</span>
-                    {low && <span className="badge badge-low" style={{ marginLeft: 6 }}>Low</span>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className={`stock-num${low ? ' low' : ''}`}>{qty}</span>
+                        {low && <span className="badge badge-low">Low</span>}
+                      </div>
+                      <div className="stock-bar-track">
+                        <div
+                          className={`stock-bar-fill${low ? ' low' : ''}`}
+                          style={{ width: `${Math.min(100, (qty / Math.max(qty, LOW_THRESHOLD * 3)) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <input

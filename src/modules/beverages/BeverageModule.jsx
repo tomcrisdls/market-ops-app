@@ -14,15 +14,15 @@ import { InvoiceModal }        from './modals/InvoiceModal'
 import { ReceiveStockModal }   from './modals/ReceiveStockModal'
 import { DateNav }             from './components/DateNav'
 import { ConfirmModal }        from './components/ConfirmModal'
-import { today, uid, invCode, getPhase, calcTotals, findKiosk, findProduct } from '../../lib/utils'
+import { today, uid, invCode, getPhase, calcTotals, findKiosk, findProduct, fmtMoney } from '../../lib/utils'
 import { KIOSKS } from '../../lib/constants'
 
 const TABS = [
-  { id: 'orders',       label: '📥\u00a0 Orders'       },
-  { id: 'distribution', label: '🚚\u00a0 Distribution' },
-  { id: 'invoices',     label: '🧾\u00a0 Invoices'     },
-  { id: 'tracker',      label: '📊\u00a0 Tracker'      },
-  { id: 'inventory',    label: '📦\u00a0 Inventory'    },
+  { id: 'orders',       icon: '📥', label: 'Orders'       },
+  { id: 'distribution', icon: '🚚', label: 'Distribution' },
+  { id: 'invoices',     icon: '🧾', label: 'Invoices'     },
+  { id: 'tracker',      icon: '📊', label: 'Tracker'      },
+  { id: 'inventory',    icon: '📦', label: 'Inventory'    },
 ]
 
 export function BeverageModule() {
@@ -40,7 +40,7 @@ export function BeverageModule() {
   const [preOrderId,           setPreOrderId]           = useState(null)
   const [preDistId,            setPreDistId]            = useState(null)
   const [editDistId,           setEditDistId]           = useState(null)
-  const [confirm,              setConfirm]              = useState(null) // { title, message, confirmLabel, variant, onConfirm }
+  const [confirm,              setConfirm]              = useState(null)
 
   const data = useBeverageData()
 
@@ -49,7 +49,17 @@ export function BeverageModule() {
   }
 
   const todayStr = today()
-  const pendingTodayOrders = data.orders.filter(o => o.status === 'pending' && o.date === todayStr)
+
+  // ── Stats bar computations ─────────────────────────────
+  const pendingTodayOrders  = data.orders.filter(o => o.status === 'pending' && o.date === todayStr)
+  const distsPendingInvoice = data.distributions.filter(d => {
+    if (d.status === 'invoiced') return false
+    const k = findKiosk(d.kioskId, KIOSKS)
+    return !k?.noInvoice
+  })
+  const invoicesTodayTotal = data.invoices
+    .filter(i => i.date === todayStr)
+    .reduce((sum, i) => sum + i.total, 0)
 
   // ── Date-filtered slices for tabs ─────────────────────
   const dayOrders   = data.orders.filter(o => o.date === activeDate)
@@ -57,10 +67,6 @@ export function BeverageModule() {
   const dayInvoices = data.invoices.filter(i => i.date === activeDate)
 
   // ── Navigation helpers ────────────────────────────────
-  // Modals live at BeverageModule level — they work on any active tab.
-  // We intentionally do NOT switch tabs when opening a modal from a card
-  // action; the user stays in context and sees the record update via realtime.
-
   const goDistributeOrder = (orderId) => {
     setPreOrderId(orderId)
     setDistModalOpen(true)
@@ -197,84 +203,108 @@ export function BeverageModule() {
 
   return (
     <>
-      {/* Module tab bar */}
-      <div className="tabs">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`tab${activeTab === tab.id ? ' active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Stats bar */}
+      <div className="stats-bar">
+        <div className="stat-item">
+          <span className="stat-value">{pendingTodayOrders.length}</span>
+          <span className="stat-label">Pending Today</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item">
+          <span className="stat-value">{distsPendingInvoice.length}</span>
+          <span className="stat-label">Pending Invoice</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat-item">
+          <span className="stat-value">{invoicesTodayTotal > 0 ? fmtMoney(invoicesTodayTotal) : '—'}</span>
+          <span className="stat-label">Invoiced Today</span>
+        </div>
       </div>
 
-      {/* Date navigation — hidden on Tracker (uses rolling windows) and Inventory */}
-      {activeTab !== 'tracker' && activeTab !== 'inventory' && (
-        <div className="date-nav-wrapper" style={{ padding: '0 20px' }}>
-          <DateNav date={activeDate} onChange={setActiveDate} />
-        </div>
-      )}
+      {/* Sidebar + main layout */}
+      <div className="module-layout">
+        {/* Sidebar nav */}
+        <aside className="sidebar">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`sidebar-nav-item${activeTab === tab.id ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <span className="nav-icon">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </aside>
 
-      {/* Active tab content */}
-      {activeTab === 'orders' && (
-        <OrdersTab
-          orders={dayOrders}
-          distributions={data.distributions}
-          inventory={data.inventory}
-          onNewOrder={() => setOrderModalOpen(true)}
-          onDistribute={goDistributeOrder}
-          onInvoice={goInvoiceFromOrder}
-          onDelete={handleDeleteOrder}
-          onEdit={(id) => setEditModalOrderId(id)}
-        />
-      )}
+        {/* Main content */}
+        <main className="main-content">
+          {/* Date navigation — hidden on Tracker and Inventory */}
+          {activeTab !== 'tracker' && activeTab !== 'inventory' && (
+            <div className="date-nav-wrapper" style={{ padding: '0 20px' }}>
+              <DateNav date={activeDate} onChange={setActiveDate} />
+            </div>
+          )}
 
-      {activeTab === 'inventory' && (
-        <InventoryTab
-          inventory={data.inventory}
-          deliveries={data.deliveries}
-          distributions={data.distributions}
-          onLogDelivery={() => setDeliveryModalOpen(true)}
-          onReceiveStock={() => setReceiveStockOpen(true)}
-          onUpdatePrice={data.updateInventoryPrice}
-          onAdjustStock={data.adjustInventory}
-        />
-      )}
+          {activeTab === 'orders' && (
+            <OrdersTab
+              orders={dayOrders}
+              distributions={data.distributions}
+              inventory={data.inventory}
+              onNewOrder={() => setOrderModalOpen(true)}
+              onDistribute={goDistributeOrder}
+              onInvoice={goInvoiceFromOrder}
+              onDelete={handleDeleteOrder}
+              onEdit={(id) => setEditModalOrderId(id)}
+            />
+          )}
 
-      {activeTab === 'distribution' && (
-        <DistributionTab
-          distributions={dayDists}
-          orders={data.orders}
-          inventory={data.inventory}
-          onNewDistribution={openNewDistribution}
-          onGenerateInvoice={goInvoiceFromDist}
-          onInvoiceAll={handleInvoiceAllPending}
-          onEdit={(id) => setEditDistId(id)}
-          onDelete={handleDeleteDist}
-          onDistributeAll={() => setDistributeAllOpen(true)}
-          pendingTodayOrders={pendingTodayOrders}
-        />
-      )}
+          {activeTab === 'inventory' && (
+            <InventoryTab
+              inventory={data.inventory}
+              deliveries={data.deliveries}
+              distributions={data.distributions}
+              onLogDelivery={() => setDeliveryModalOpen(true)}
+              onReceiveStock={() => setReceiveStockOpen(true)}
+              onUpdatePrice={data.updateInventoryPrice}
+              onAdjustStock={data.adjustInventory}
+            />
+          )}
 
-      {activeTab === 'invoices' && (
-        <InvoicesTab
-          invoices={dayInvoices}
-          onGenerateInvoice={openNewInvoice}
-          onMarkSent={data.markInvoiceSent}
-          onDelete={handleDeleteInvoice}
-          onGoToDistribution={() => setActiveTab('distribution')}
-        />
-      )}
+          {activeTab === 'distribution' && (
+            <DistributionTab
+              distributions={dayDists}
+              orders={data.orders}
+              inventory={data.inventory}
+              onNewDistribution={openNewDistribution}
+              onGenerateInvoice={goInvoiceFromDist}
+              onInvoiceAll={handleInvoiceAllPending}
+              onEdit={(id) => setEditDistId(id)}
+              onDelete={handleDeleteDist}
+              onDistributeAll={() => setDistributeAllOpen(true)}
+              pendingTodayOrders={pendingTodayOrders}
+            />
+          )}
 
-      {activeTab === 'tracker' && (
-        <TrackerTab
-          invoices={data.invoices}
-          inventory={data.inventory}
-          distributions={data.distributions}
-        />
-      )}
+          {activeTab === 'invoices' && (
+            <InvoicesTab
+              invoices={dayInvoices}
+              onGenerateInvoice={openNewInvoice}
+              onMarkSent={data.markInvoiceSent}
+              onDelete={handleDeleteInvoice}
+              onGoToDistribution={() => setActiveTab('distribution')}
+            />
+          )}
+
+          {activeTab === 'tracker' && (
+            <TrackerTab
+              invoices={data.invoices}
+              inventory={data.inventory}
+              distributions={data.distributions}
+            />
+          )}
+        </main>
+      </div>
 
       {/* Modals */}
       <OrderModal
