@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtMoney, calcTotals, findKiosk, findProduct } from '../../../lib/utils'
+import { Icon } from '../../../components/icons/Icons'
 
 const STATUS_FILTERS = ['all', 'pending', 'distributed', 'invoiced']
 
@@ -94,7 +95,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
 
       {visible.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">📋</div>
+          <div className="empty-icon-wrap"><Icon name="inbox" size={36} /></div>
           <p>No orders{filter !== 'all' ? ` with status "${filter}"` : ' for this date'}</p>
           {filter === 'all' && (
             <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={onNewOrder}>
@@ -114,28 +115,36 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                                   : order.status === 'distributed' ? '#3b82f6'
                                   : '#f97316'
                 return (
-                  <div className="card" key={order.id} style={{ borderLeft: `4px solid ${borderColor}` }}>
+                  <div className="card" key={order.id} style={{ borderLeft: `3px solid ${borderColor}` }}>
                     {/* Header */}
                     <div className="item-card-header">
                       <div className="item-card-name">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
                           <strong>{kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : order.kioskId}</strong>
                           <span className={`badge badge-${order.status}`}>{order.status}</span>
-                          {diffs && <span className="badge badge-warn">⚠ partial</span>}
+                          {diffs && <span className="badge badge-warn">partial</span>}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <span className="item-card-amount">{fmtMoney(totals.total)}</span>
                           <div style={{ display: 'flex', gap: 3 }}>
                             {order.status === 'pending' && (
                               <>
-                                <button className="btn-icon primary" title="Edit" onClick={() => onEdit(order.id)}>✏️</button>
-                                <button className="btn-icon success" title="Distribute" onClick={() => onDistribute(order.id)}>🚚</button>
+                                <button className="btn-icon primary" title="Edit" onClick={() => onEdit(order.id)}>
+                                  <Icon name="pencil" size={14} />
+                                </button>
+                                <button className="btn-icon success" title="Distribute" onClick={() => onDistribute(order.id)}>
+                                  <Icon name="truck" size={14} />
+                                </button>
                               </>
                             )}
                             {order.status === 'distributed' && (
-                              <button className="btn-icon success" title="Generate Invoice" onClick={() => onInvoice(order.id)}>🧾</button>
+                              <button className="btn-icon success" title="Generate Invoice" onClick={() => onInvoice(order.id)}>
+                                <Icon name="receipt" size={14} />
+                              </button>
                             )}
-                            <button className="btn-icon danger" title="Delete" onClick={() => onDelete(order.id)}>🗑️</button>
+                            <button className="btn-icon danger" title="Delete" onClick={() => onDelete(order.id)}>
+                              <Icon name="trash" size={14} />
+                            </button>
                           </div>
                         </div>
                       </div>

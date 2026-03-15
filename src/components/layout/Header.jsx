@@ -1,10 +1,8 @@
 import logo from '../../assets/logo.png'
 
 export function Header({ moduleTitle = 'Beverage Management' }) {
-  const now      = new Date()
-  const hour     = now.getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-  const dateStr  = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const now     = new Date()
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 
   return (
     <div className="header">
@@ -14,7 +12,6 @@ export function Header({ moduleTitle = 'Beverage Management' }) {
         <div className="header-title">{moduleTitle}</div>
       </div>
       <div className="header-right">
-        <span className="header-greeting">{greeting}</span>
         <span className="header-date">{dateStr}</span>
       </div>
     </div>

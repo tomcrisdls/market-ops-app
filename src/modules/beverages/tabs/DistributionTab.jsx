@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtDate, fmtMoney, calcTotals, findKiosk, findProduct } from '../../../lib/utils'
 import { DistributionSheet } from '../components/DistributionSheet'
+import { Icon } from '../../../components/icons/Icons'
 
 const DIST_FILTERS = ['all', 'needs invoice', 'no invoice', 'invoiced']
 
@@ -73,8 +74,9 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {pendingTodayOrders?.length > 0 && (
-            <button className="btn btn-secondary" onClick={onDistributeAll}>
-              ⚡ Distribute All Today ({pendingTodayOrders.length})
+            <button className="btn btn-secondary" onClick={onDistributeAll} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="bolt" size={13} />
+              Distribute All Today ({pendingTodayOrders.length})
             </button>
           )}
           <button className="btn btn-primary" onClick={() => onNewDistribution(null)}>
@@ -85,7 +87,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
 
       {distributions.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">🚚</div>
+          <div className="empty-icon-wrap"><Icon name="truck" size={36} /></div>
           <p>No distributions for this day</p>
           <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => onNewDistribution(null)}>
             + New Distribution
@@ -108,16 +110,19 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
             </div>
             <div className="dist-summary-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {pendingInvoiceCount > 0 && (
-                <button className="btn btn-sm btn-success" onClick={onInvoiceAll}>
-                  ⚡ Invoice All ({pendingInvoiceCount})
+                <button className="btn btn-sm btn-success" onClick={onInvoiceAll} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Icon name="bolt" size={12} />
+                  Invoice All ({pendingInvoiceCount})
                 </button>
               )}
               {distributions.length > 1 && (
                 <button
                   className={`btn btn-sm mobile-print-hidden ${printAllOpen ? 'btn-secondary' : 'btn-ghost'}`}
                   onClick={() => setPrintAllOpen(p => !p)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5 }}
                 >
-                  🖨 {printAllOpen ? 'Hide All' : `Print All (${distributions.length})`}
+                  <Icon name="printer" size={13} />
+                  {printAllOpen ? 'Hide All' : `Print All (${distributions.length})`}
                 </button>
               )}
             </div>
@@ -132,7 +137,9 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                 </span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn btn-sm btn-ghost" onClick={() => setPrintAllOpen(false)}>Close</button>
-                  <button className="btn btn-sm btn-primary" onClick={() => window.print()}>🖨 Print</button>
+                  <button className="btn btn-sm btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Icon name="printer" size={13} /> Print
+                  </button>
                 </div>
               </div>
               <div id="invoice-print-area">
@@ -159,7 +166,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                 : dist.kioskId
 
               return (
-                <div className="card" key={dist.id} style={{ borderLeft: `4px solid ${borderColor}` }}>
+                <div className="card" key={dist.id} style={{ borderLeft: `3px solid ${borderColor}` }}>
                   {/* Header row */}
                   <div className="item-card-header">
                     <div className="item-card-name">
@@ -173,10 +180,14 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                         <span className="item-card-amount">{fmtMoney(totals.total)}</span>
                         <div style={{ display: 'flex', gap: 3 }}>
                           {needsInvoice && (
-                            <button className="btn-icon success" title="Generate Invoice" onClick={() => onGenerateInvoice(dist.id)}>🧾</button>
+                            <button className="btn-icon success" title="Generate Invoice" onClick={() => onGenerateInvoice(dist.id)}>
+                              <Icon name="receipt" size={14} />
+                            </button>
                           )}
                           {!isInvoiced && (
-                            <button className="btn-icon primary" title="Edit" onClick={() => onEdit(dist.id)}>✏️</button>
+                            <button className="btn-icon primary" title="Edit" onClick={() => onEdit(dist.id)}>
+                              <Icon name="pencil" size={14} />
+                            </button>
                           )}
                           <button
                             className={`btn-icon mobile-print-hidden${isPrinting ? ' primary' : ''}`}
@@ -186,11 +197,15 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                               setActivePrintId(opening ? dist.id : null)
                               if (opening) setTimeout(() => document.getElementById(`dist-sheet-${dist.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
                             }}
-                          >🖨️</button>
+                          >
+                            <Icon name="printer" size={14} />
+                          </button>
                           <button className="btn-icon danger" title="Delete" onClick={() => {
                             onDelete(dist.id)
                             if (activePrintId === dist.id) setActivePrintId(null)
-                          }}>🗑️</button>
+                          }}>
+                            <Icon name="trash" size={14} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -248,7 +263,9 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{kioskLabel} — {fmtDate(dist.date)}</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn btn-sm btn-ghost" onClick={() => setActivePrintId(null)}>Close</button>
-                    <button className="btn btn-sm btn-primary" onClick={() => window.print()}>🖨 Print</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Icon name="printer" size={13} /> Print
+                    </button>
                   </div>
                 </div>
                 <div id="invoice-print-area">

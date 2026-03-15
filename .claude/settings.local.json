@@ -19,7 +19,19 @@
       "Bash(PATH=\"$HOME/.nvm/versions/node/v24.14.0/bin:$PATH\" npm install @anthropic-ai/sdk --prefix \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app\")",
       "Bash(export PATH=\"$HOME/.nvm/versions/node/v24.14.0/bin:$PATH\")",
       "Bash(ls \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/.env\"*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(/opt/homebrew/bin/gh auth:*)",
+      "Bash(chmod +x \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/deploy.sh\")",
+      "mcp__PDF__By_Anthropic___read_pdf_bytes",
+      "Bash(cp \"/Users/cristhoferdelossantos/Downloads/TomUnionSquare_12cmStickers.pdf\" \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/TomUnionSquare_12cmStickers.pdf\")",
+      "Bash(cp \"/Users/cristhoferdelossantos/Downloads/TomNY_UnionSquare_positive.pdf\" \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/TomNY_UnionSquare_positive.pdf\")",
+      "Bash(cp \"/Users/cristhoferdelossantos/Downloads/TomNY_UnionSquare_CircularOutline.pdf\" \"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/TomNY_UnionSquare_CircularOutline.pdf\")",
+      "Bash(convert --version)",
+      "Bash(python3 -c \"import fitz; print\\(''PyMuPDF available''\\)\")",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(\"/Users/cristhoferdelossantos/Library/Mobile Documents/com~apple~CloudDocs/market-ops-app/index.html\":*)"
     ]
   }
 }

@@ -14,16 +14,16 @@ import { InvoiceModal }        from './modals/InvoiceModal'
 import { ReceiveStockModal }   from './modals/ReceiveStockModal'
 import { DateNav }             from './components/DateNav'
 import { ConfirmModal }        from './components/ConfirmModal'
+import { Icon }                from '../../components/icons/Icons'
 import { today, uid, invCode, getPhase, calcTotals, findKiosk, findProduct, fmtMoney } from '../../lib/utils'
 import { KIOSKS } from '../../lib/constants'
-import logoCircular from '../../assets/logo-circular.png'
 
 const TABS = [
-  { id: 'orders',       icon: '📥', label: 'Orders'       },
-  { id: 'distribution', icon: '🚚', label: 'Distribution' },
-  { id: 'invoices',     icon: '🧾', label: 'Invoices'     },
-  { id: 'tracker',      icon: '📊', label: 'Tracker'      },
-  { id: 'inventory',    icon: '📦', label: 'Inventory'    },
+  { id: 'orders',       icon: 'inbox',     label: 'Orders'       },
+  { id: 'distribution', icon: 'truck',     label: 'Distribution' },
+  { id: 'invoices',     icon: 'receipt',   label: 'Invoices'     },
+  { id: 'tracker',      icon: 'chart-bar', label: 'Tracker'      },
+  { id: 'inventory',    icon: 'cube',      label: 'Inventory'    },
 ]
 
 export function BeverageModule() {
@@ -226,17 +226,14 @@ export function BeverageModule() {
       <div className="module-layout">
         {/* Sidebar nav */}
         <aside className="sidebar">
-          {/* Brand badge */}
-          <div style={{ padding: '12px 16px 16px', borderBottom: '1px solid var(--border)', marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
-            <img src={logoCircular} alt="Time Out Market NY" style={{ width: 100, height: 100, objectFit: 'contain' }} />
-          </div>
+          <div className="sidebar-section-label">Navigation</div>
           {TABS.map(tab => (
             <button
               key={tab.id}
               className={`sidebar-nav-item${activeTab === tab.id ? ' active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <span className="nav-icon">{tab.icon}</span>
+              <Icon name={tab.icon} size={16} className="nav-icon-svg" />
               {tab.label}
             </button>
           ))}

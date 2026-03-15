@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtDate, fmtMoney, findKiosk } from '../../../lib/utils'
 import { InvoicePreview } from '../components/InvoicePreview'
+import { Icon } from '../../../components/icons/Icons'
 
 export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete, onGoToDistribution }) {
   const [activePreviewId, setActivePreviewId] = useState(null)
@@ -47,7 +48,7 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
 
       {invoices.length === 0 ? (
         <div className="empty-state">
-          <div style={{ fontSize: 52, marginBottom: 14 }}>🧾</div>
+          <div className="empty-icon-wrap"><Icon name="receipt" size={36} /></div>
           <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>No invoices for this day</p>
           <p style={{ fontSize: 12, marginBottom: 16 }}>Generate an invoice from a completed distribution</p>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -56,7 +57,7 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
             </button>
             {onGoToDistribution && (
               <button className="btn btn-secondary" onClick={onGoToDistribution}>
-                → Go to Distribution
+                Go to Distribution
               </button>
             )}
           </div>
@@ -69,7 +70,7 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
                             : inv.status === 'draft' ? '#d97706'
                             : 'var(--border)'
           return (
-            <div className="card" key={inv.id} style={{ borderLeft: `4px solid ${borderColor}` }}>
+            <div className="card" key={inv.id} style={{ borderLeft: `3px solid ${borderColor}` }}>
               <div className="item-card-header">
                 <div className="item-card-name">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
@@ -83,19 +84,30 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
                         className={`btn-icon${activePreviewId === inv.id ? ' primary' : ''}`}
                         title={activePreviewId === inv.id ? 'Hide Invoice' : 'View / Print'}
                         onClick={() => handleView(inv.id)}
-                      >👁️</button>
+                      >
+                        <Icon name="eye" size={14} />
+                      </button>
                       <button
                         className="btn-icon"
                         title="Copy invoice as text"
                         onClick={() => copyInvoice(inv)}
-                      >{copiedId === inv.id ? '✓' : '📋'}</button>
+                      >
+                        {copiedId === inv.id
+                          ? <Icon name="check" size={14} style={{ color: '#16a34a' }} />
+                          : <Icon name="clipboard" size={14} />
+                        }
+                      </button>
                       {inv.status === 'draft' && (
-                        <button className="btn-icon success" title="Mark Sent" onClick={() => onMarkSent(inv.id)}>✅</button>
+                        <button className="btn-icon success" title="Mark Sent" onClick={() => onMarkSent(inv.id)}>
+                          <Icon name="check" size={14} />
+                        </button>
                       )}
                       <button className="btn-icon danger" title="Delete" onClick={() => {
                         onDelete(inv.id)
                         if (activePreviewId === inv.id) setActivePreviewId(null)
-                      }}>🗑️</button>
+                      }}>
+                        <Icon name="trash" size={14} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -117,10 +129,15 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
             </span>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-sm btn-ghost" onClick={() => setActivePreviewId(null)}>Close</button>
-              <button className="btn btn-sm btn-ghost" onClick={() => copyInvoice(activeInvoice)}>
-                {copiedId === activeInvoice?.id ? '✓ Copied!' : '📋 Copy'}
+              <button className="btn btn-sm btn-ghost" onClick={() => copyInvoice(activeInvoice)} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                {copiedId === activeInvoice?.id
+                  ? <><Icon name="check" size={13} /> Copied!</>
+                  : <><Icon name="clipboard" size={13} /> Copy</>
+                }
               </button>
-              <button className="btn btn-sm btn-primary" onClick={() => window.print()}>🖨 Print</button>
+              <button className="btn btn-sm btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Icon name="printer" size={13} /> Print
+              </button>
             </div>
           </div>
           <div id="invoice-print-area">

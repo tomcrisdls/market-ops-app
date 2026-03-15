@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { KIOSKS, MONTHS, PRODUCTS } from '../../../lib/constants'
 import { fmtMoney, fmtDate, getPhase, findKiosk } from '../../../lib/utils'
+import { Icon } from '../../../components/icons/Icons'
 
 const PHASES = ['All Phases', 'Phase 1', 'Phase 2']
 const VIEWS  = ['Billing', 'Consumption', 'Reorder']
@@ -85,7 +86,7 @@ function ConsumptionView({ distributions }) {
   if (rows.length === 0) {
     return (
       <div className="empty-state">
-        <div className="icon">📊</div>
+        <div className="empty-icon-wrap" style={{ margin: '0 auto 14px' }}><Icon name="chart-bar" size={36} /></div>
         <p>No distribution data yet</p>
       </div>
     )
@@ -338,7 +339,7 @@ function BillingView({ invoices }) {
 
       {filtered.length === 0 ? (
         <div className="empty-state">
-          <div className="icon">📊</div>
+          <div className="empty-icon-wrap" style={{ margin: '0 auto 14px' }}><Icon name="chart-bar" size={36} /></div>
           <p>No invoices for {MONTHS[month]} {year}{phase !== 'All Phases' ? ' · ' + phase : ''}</p>
         </div>
       ) : (
