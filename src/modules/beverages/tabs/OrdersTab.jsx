@@ -97,11 +97,6 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
         <div className="empty-state">
           <div className="empty-icon-wrap"><Icon name="inbox" size={36} /></div>
           <p>No orders{filter !== 'all' ? ` with status "${filter}"` : ' for this date'}</p>
-          {filter === 'all' && (
-            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={onNewOrder}>
-              + New Order
-            </button>
-          )}
         </div>
       ) : (
         dateGroups.map(({ date, items: group }) => (

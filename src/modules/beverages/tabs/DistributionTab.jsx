@@ -89,9 +89,6 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
         <div className="empty-state">
           <div className="empty-icon-wrap"><Icon name="truck" size={36} /></div>
           <p>No distributions for this day</p>
-          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => onNewDistribution(null)}>
-            + New Distribution
-          </button>
         </div>
       ) : (
         <>
