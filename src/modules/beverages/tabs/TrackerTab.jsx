@@ -241,7 +241,14 @@ function ReorderView({ distributions, inventory }) {
                 </div>
               )}
             </div>
-            <table className="data-table">
+            <table className="data-table" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '42%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '14%' }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Product</th>
