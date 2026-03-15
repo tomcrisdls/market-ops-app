@@ -21,6 +21,14 @@ export const PRODUCTS = [
 
 export const VENDORS = ['AceEndico', 'Driscoll', 'ThinkPackage', 'Other']
 
+// Vendor ordering constraints and schedules
+// cutoffDays: JS day-of-week (0=Sun, 1=Mon … 6=Sat)
+export const VENDOR_INFO = {
+  AceEndico:    { minCases: null, minDollars: 500,  cutoffHour: 16, cutoffDays: [1,2,3,4,5], deliveryNote: 'Next business day' },
+  Driscoll:     { minCases: 20,   minDollars: null, cutoffHour: 16, cutoffDays: [1,2,3,4,5], deliveryNote: 'Next business day' },
+  ThinkPackage: { minCases: 10,   minDollars: null, cutoffHour: 11, cutoffDays: [3,5],        deliveryNote: 'Wed 11am → Thu/Fri · Fri 11am → Mon/Tue' },
+}
+
 export const TAX_RATE = 0.08875
 export const DEPOSIT_PER_CASE = 1.20
 export const LOW_THRESHOLD = 5

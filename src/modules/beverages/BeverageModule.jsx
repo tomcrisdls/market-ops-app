@@ -7,12 +7,12 @@ import { InvoicesTab }     from './tabs/InvoicesTab'
 import { TrackerTab }      from './tabs/TrackerTab'
 import { OrderModal }          from './modals/OrderModal'
 import { EditOrderModal }      from './modals/EditOrderModal'
-import { DeliveryModal }       from './modals/DeliveryModal'
 import { DistributeModal }     from './modals/DistributeModal'
 import { DistributeAllModal }  from './modals/DistributeAllModal'
 import { InvoiceModal }        from './modals/InvoiceModal'
 import { ReceiveStockModal }   from './modals/ReceiveStockModal'
 import { DateNav }             from './components/DateNav'
+import { VendorDeadlineBanner } from './components/VendorDeadlineBanner'
 import { ConfirmModal }        from './components/ConfirmModal'
 import { Icon }                from '../../components/icons/Icons'
 import { today, uid, invCode, getPhase, calcTotals, findKiosk, findProduct, fmtMoney } from '../../lib/utils'
@@ -33,7 +33,6 @@ export function BeverageModule() {
   // Modal state
   const [orderModalOpen,       setOrderModalOpen]       = useState(false)
   const [editModalOrderId,     setEditModalOrderId]     = useState(null)
-  const [deliveryModalOpen,    setDeliveryModalOpen]    = useState(false)
   const [receiveStockOpen,     setReceiveStockOpen]     = useState(false)
   const [distModalOpen,        setDistModalOpen]        = useState(false)
   const [distributeAllOpen,    setDistributeAllOpen]    = useState(false)
@@ -204,6 +203,9 @@ export function BeverageModule() {
 
   return (
     <>
+      {/* Vendor deadline banner */}
+      <VendorDeadlineBanner />
+
       {/* Stats bar */}
       <div className="stats-bar">
         <div className="stat-item">
@@ -226,7 +228,6 @@ export function BeverageModule() {
       <div className="module-layout">
         {/* Sidebar nav */}
         <aside className="sidebar">
-          <div className="sidebar-section-label">Navigation</div>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -266,7 +267,6 @@ export function BeverageModule() {
               inventory={data.inventory}
               deliveries={data.deliveries}
               distributions={data.distributions}
-              onLogDelivery={() => setDeliveryModalOpen(true)}
               onReceiveStock={() => setReceiveStockOpen(true)}
               onUpdatePrice={data.updateInventoryPrice}
               onAdjustStock={data.adjustInventory}
@@ -322,12 +322,6 @@ export function BeverageModule() {
         order={editOrder}
         inventory={data.inventory}
         onSave={data.updateOrder}
-      />
-
-      <DeliveryModal
-        isOpen={deliveryModalOpen}
-        onClose={() => setDeliveryModalOpen(false)}
-        onSave={data.addDelivery}
       />
 
       <ReceiveStockModal

@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { KIOSKS, MONTHS, PRODUCTS } from '../../../lib/constants'
+import { KIOSKS, MONTHS, PRODUCTS, VENDOR_INFO } from '../../../lib/constants'
 import { fmtMoney, fmtDate, getPhase, findKiosk } from '../../../lib/utils'
 import { Icon } from '../../../components/icons/Icons'
 
-const PHASES = ['All Phases', 'Phase 1', 'Phase 2']
-const VIEWS  = ['Billing', 'Consumption', 'Reorder']
+const VIEWS = ['Billing', 'Consumption', 'Reorder']
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -182,60 +181,101 @@ function ConsumptionView({ distributions }) {
 
 // ── Reorder view ──────────────────────────────────────────────────────────────
 
+function daysLeft(qty, avgPerWeek) {
+  if (avgPerWeek === 0) return null
+  if (qty <= 0) return 0
+  return Math.round((qty / avgPerWeek) * 7)
+}
+
 function ReorderView({ distributions, inventory }) {
   const weeks = getWeekRanges(4)
 
-  const rows = PRODUCTS.map(p => {
+  const productStats = PRODUCTS.map(p => {
     const counts     = weeks.map(w => sumWeek(distributions, p.id, w.start, w.end))
     const avg        = counts.reduce((s, c) => s + c, 0) / weeks.length
     const currentQty = inventory[p.id]?.qty ?? 0
+    const price      = inventory[p.id]?.price ?? p.defaultPrice
+    const days       = daysLeft(currentQty, avg)
     const suggested  = Math.max(0, Math.ceil(avg * 2) - currentQty)
-    const needsOrder = currentQty < avg
-    return { product: p, avg, currentQty, suggested, needsOrder }
+    return { product: p, avg, currentQty, price, days, suggested }
   })
 
+  const vendorOrder = ['AceEndico', 'Driscoll', 'ThinkPackage']
+
   return (
-    <div className="card">
-      <div className="card-title">Suggested Reorder — Based on 4-Week Average</div>
-      <div style={{ fontSize: 12, color: 'var(--sub)', marginBottom: 12 }}>
-        Target: 2 weeks of stock on hand after delivery
-      </div>
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Vendor</th>
-            <th style={{ textAlign: 'center' }}>In Cage</th>
-            <th style={{ textAlign: 'center' }}>Avg / Wk</th>
-            <th style={{ textAlign: 'center' }}>Suggested Order</th>
-            <th style={{ textAlign: 'center' }}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ product: p, avg, currentQty, suggested, needsOrder }) => (
-            <tr key={p.id}>
-              <td><strong>{p.name}</strong></td>
-              <td style={{ color: 'var(--sub)' }}>{p.vendor}</td>
-              <td style={{ textAlign: 'center' }}>{currentQty}</td>
-              <td style={{ textAlign: 'center', color: 'var(--sub)' }}>
-                {avg === 0 ? '—' : (avg % 1 === 0 ? avg : avg.toFixed(1))}
-              </td>
-              <td style={{ textAlign: 'center', fontWeight: suggested > 0 ? 600 : 'normal' }}>
-                {suggested === 0 ? '—' : suggested}
-              </td>
-              <td style={{ textAlign: 'center' }}>
-                {avg === 0 ? (
-                  <span style={{ color: 'var(--sub)', fontSize: 12 }}>No data</span>
-                ) : needsOrder ? (
-                  <span className="badge badge-reorder-order">⚠ Order</span>
-                ) : (
-                  <span className="badge badge-reorder-ok">✓ OK</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {vendorOrder.map(vendorName => {
+        const info  = VENDOR_INFO[vendorName]
+        const rows  = productStats.filter(r => r.product.vendor === vendorName)
+        const totalSuggested = rows.reduce((s, r) => s + r.suggested, 0)
+        const totalValue     = rows.reduce((s, r) => s + r.suggested * r.price, 0)
+        const meetsMin = info.minCases
+          ? totalSuggested >= info.minCases
+          : totalValue >= (info.minDollars ?? 0)
+        const belowBy = info.minCases
+          ? Math.max(0, info.minCases - totalSuggested)
+          : Math.max(0, (info.minDollars ?? 0) - totalValue)
+
+        return (
+          <div className="card" key={vendorName}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <div className="card-title" style={{ margin: 0 }}>{vendorName}</div>
+                <div style={{ fontSize: 12, color: 'var(--sub)', marginTop: 3 }}>
+                  Min: {info.minCases ? `${info.minCases} cases` : fmtMoney(info.minDollars ?? 0)} · {info.deliveryNote}
+                </div>
+              </div>
+              {totalSuggested > 0 && (
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: meetsMin ? '#16a34a' : '#dc2626' }}>
+                    {totalSuggested} cases to order
+                  </div>
+                  <div style={{ fontSize: 11, color: meetsMin ? '#16a34a' : '#dc2626', marginTop: 2 }}>
+                    {meetsMin
+                      ? '✓ Meets minimum'
+                      : info.minCases
+                        ? `Need ${belowBy} more to meet min`
+                        : `${fmtMoney(belowBy)} more to meet min`
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th style={{ textAlign: 'center' }}>In Cage</th>
+                  <th style={{ textAlign: 'center' }}>Avg / Wk</th>
+                  <th style={{ textAlign: 'center' }}>Days Left</th>
+                  <th style={{ textAlign: 'center' }}>Order</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ product: p, avg, currentQty, days, suggested }) => {
+                  const urgent = days !== null && days <= 7
+                  const ok     = days === null || days > 14
+                  return (
+                    <tr key={p.id}>
+                      <td><strong>{p.name}</strong></td>
+                      <td style={{ textAlign: 'center' }}>{currentQty}</td>
+                      <td style={{ textAlign: 'center', color: 'var(--sub)' }}>
+                        {avg === 0 ? '—' : avg % 1 === 0 ? avg : avg.toFixed(1)}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: urgent ? 700 : 400, color: days === 0 ? '#dc2626' : urgent ? '#dc2626' : ok ? '#16a34a' : 'var(--text)' }}>
+                        {days === null ? '—' : days === 0 ? 'Out!' : `${days}d`}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: suggested > 0 ? 700 : 400, color: suggested > 0 ? 'var(--text)' : 'var(--sub)' }}>
+                        {suggested === 0 ? '—' : suggested}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -246,15 +286,12 @@ function BillingView({ invoices }) {
   const now = new Date()
   const [month,   setMonth]   = useState(now.getMonth())
   const [year,    setYear]    = useState(now.getFullYear())
-  const [phase,   setPhase]   = useState('All Phases')
   const [kitchen, setKitchen] = useState('All Kitchens')
 
-  // Invoices matching period + phase
+  // Invoices matching period
   const periodFiltered = invoices.filter(inv => {
     const [y, m] = inv.date.split('-')
-    const matchPeriod = parseInt(y) === year && parseInt(m) - 1 === month
-    const matchPhase  = phase === 'All Phases' || inv.phase === phase
-    return matchPeriod && matchPhase
+    return parseInt(y) === year && parseInt(m) - 1 === month
   })
 
   // Kitchens that actually have invoices in this period
@@ -270,6 +307,7 @@ function BillingView({ invoices }) {
     resolvedKitchen === 'All Kitchens' ||
     inv.kioskId === KIOSKS.find(k => k.name === resolvedKitchen)?.id
   )
+
 
   const byKiosk = {}
   filtered.forEach(inv => {
@@ -304,18 +342,6 @@ function BillingView({ invoices }) {
             />
           </div>
         </div>
-        <div className="filter-pills" style={{ marginBottom: 10 }}>
-          {PHASES.map(p => (
-            <button
-              key={p}
-              className={`pill${phase === p ? ' active' : ''}`}
-              onClick={() => setPhase(p)}
-            >
-              {p === 'Phase 1' ? 'Phase 1 — Days 1–15' :
-               p === 'Phase 2' ? 'Phase 2 — Days 16–end' : p}
-            </button>
-          ))}
-        </div>
         {activeKiosks.length > 0 && (
           <div className="filter-pills">
             <button
@@ -340,7 +366,7 @@ function BillingView({ invoices }) {
       {filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon-wrap" style={{ margin: '0 auto 14px' }}><Icon name="chart-bar" size={36} /></div>
-          <p>No invoices for {MONTHS[month]} {year}{phase !== 'All Phases' ? ' · ' + phase : ''}</p>
+          <p>No invoices for {MONTHS[month]} {year}</p>
         </div>
       ) : (
         Object.entries(byKiosk).map(([kioskId, kioskInvoices]) => {
@@ -367,19 +393,17 @@ function BillingView({ invoices }) {
               </div>
               <table className="tracker-table" style={{ tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '22%' }} />
-                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '26%' }} />
+                  <col style={{ width: '18%' }} />
                   <col style={{ width: '14%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '14%' }} />
                 </colgroup>
                 <thead>
                   <tr>
                     <th>Invoice #</th>
                     <th>Date</th>
-                    <th>Phase</th>
                     <th style={{ textAlign: 'right' }}>Water</th>
                     <th style={{ textAlign: 'right' }}>Soda</th>
                     <th style={{ textAlign: 'right' }}>Bags</th>
@@ -398,7 +422,6 @@ function BillingView({ invoices }) {
                       <tr key={inv.id}>
                         <td style={{ fontWeight: 500 }}>{inv.invoiceCode}</td>
                         <td>{fmtDate(inv.date)}</td>
-                        <td style={{ color: 'var(--sub)' }}>{inv.phase}</td>
                         <td style={{ textAlign: 'right' }}>{w > 0 ? fmtMoney(w) : '—'}</td>
                         <td style={{ textAlign: 'right' }}>{s > 0 ? fmtMoney(s) : '—'}</td>
                         <td style={{ textAlign: 'right' }}>{b > 0 ? fmtMoney(b) : '—'}</td>
@@ -407,7 +430,7 @@ function BillingView({ invoices }) {
                     )
                   })}
                   <tr className="total-row">
-                    <td colSpan={3} style={{ fontWeight: 700 }}>Totals</td>
+                    <td colSpan={2} style={{ fontWeight: 700 }}>Totals</td>
                     <td style={{ textAlign: 'right' }}>{waterAmt > 0 ? fmtMoney(waterAmt) : '—'}</td>
                     <td style={{ textAlign: 'right' }}>{sodaAmt  > 0 ? fmtMoney(sodaAmt)  : '—'}</td>
                     <td style={{ textAlign: 'right' }}>{bagsAmt  > 0 ? fmtMoney(bagsAmt)  : '—'}</td>

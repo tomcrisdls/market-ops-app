@@ -1,36 +1,14 @@
 import { useState } from 'react'
 import { PRODUCTS, LOW_THRESHOLD } from '../../../lib/constants'
-import { fmtDate, fmtMoney, findProduct } from '../../../lib/utils'
+import { fmtDate, fmtMoney } from '../../../lib/utils'
 
-function computeStockouts(deliveries, distributions) {
-  const events = [
-    ...deliveries.flatMap(d =>
-      d.items.map(i => ({ date: d.date, productId: i.productId, delta: +i.qty }))
-    ),
-    ...distributions.flatMap(d =>
-      d.items.map(i => ({ date: d.date, productId: i.productId, delta: -i.qty }))
-    ),
-  ].sort((a, b) => a.date.localeCompare(b.date))
-
-  const balance = {}
-  const stockouts = []
-  for (const ev of events) {
-    balance[ev.productId] = (balance[ev.productId] ?? 0) + ev.delta
-    if (ev.delta < 0 && balance[ev.productId] <= 0) {
-      stockouts.push({ productId: ev.productId, date: ev.date })
-    }
-  }
-  return stockouts
-}
-
-export function InventoryTab({ inventory, deliveries, distributions, onLogDelivery, onReceiveStock, onUpdatePrice, onAdjustStock }) {
+export function InventoryTab({ inventory, deliveries, distributions, onReceiveStock, onUpdatePrice, onAdjustStock }) {
   // Local qty adjust inputs — one per product
   const [adjustQtys, setAdjustQtys] = useState(() =>
     Object.fromEntries(PRODUCTS.map(p => [p.id, 1]))
   )
 
   const lowItems = PRODUCTS.filter(p => (inventory[p.id]?.qty ?? 0) <= LOW_THRESHOLD)
-  const stockouts = computeStockouts(deliveries, distributions ?? [])
 
   return (
     <div className="screen">
@@ -38,10 +16,7 @@ export function InventoryTab({ inventory, deliveries, distributions, onLogDelive
         <div style={{ fontSize: 13, color: 'var(--sub)', fontWeight: 500 }}>
           {PRODUCTS.length} products
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={onLogDelivery}>+ Log Delivery</button>
-          <button className="btn btn-primary" onClick={onReceiveStock}>+ Receive Stock</button>
-        </div>
+        <button className="btn btn-primary" onClick={onReceiveStock}>+ Receive Stock</button>
       </div>
 
       {/* Low-stock alert — single compact banner */}
@@ -168,7 +143,7 @@ export function InventoryTab({ inventory, deliveries, distributions, onLogDelive
               </tr>
             </thead>
             <tbody>
-              {[...deliveries].reverse().slice(0, 30).map(d => {
+              {[...deliveries].reverse().slice(0, 5).map(d => {
                 const itemTxt = d.items
                   .map(it => {
                     const p = PRODUCTS.find(p => p.id === it.productId)
@@ -188,35 +163,6 @@ export function InventoryTab({ inventory, deliveries, distributions, onLogDelive
         )}
       </div>
 
-      {/* Stockout History */}
-      <div className="card">
-        <div className="card-title">Stockout History</div>
-        {stockouts.length === 0 ? (
-          <div style={{ color: 'var(--sub)', fontSize: 13, padding: '4px 0' }}>
-            No stockouts recorded.
-          </div>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Product</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...stockouts].reverse().slice(0, 20).map((s, i) => {
-                const p = findProduct(s.productId)
-                return (
-                  <tr key={i}>
-                    <td>{fmtDate(s.date)}</td>
-                    <td style={{ color: 'var(--sub)' }}>{p ? p.name : s.productId}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
     </div>
   )
 }

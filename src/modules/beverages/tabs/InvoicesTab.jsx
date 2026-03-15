@@ -84,16 +84,6 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
                       >
                         <Icon name="eye" size={14} />
                       </button>
-                      <button
-                        className="btn-icon"
-                        title="Copy invoice as text"
-                        onClick={() => copyInvoice(inv)}
-                      >
-                        {copiedId === inv.id
-                          ? <Icon name="check" size={14} style={{ color: '#16a34a' }} />
-                          : <Icon name="clipboard" size={14} />
-                        }
-                      </button>
                       {inv.status === 'draft' && (
                         <button className="btn-icon success" title="Mark Sent" onClick={() => onMarkSent(inv.id)}>
                           <Icon name="check" size={14} />
