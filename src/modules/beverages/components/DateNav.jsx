@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { today } from '../../../lib/utils'
+import { Icon } from '../../../components/icons/Icons'
 
 function shiftDate(dateStr, delta) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -9,7 +10,7 @@ function shiftDate(dateStr, delta) {
 
 function fmtNavDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
 export function DateNav({ date, onChange }) {
@@ -18,21 +19,18 @@ export function DateNav({ date, onChange }) {
   const pickerRef = useRef(null)
 
   return (
-    <div style={{
-      display:      'flex',
-      alignItems:   'center',
-      gap:          8,
-      padding:      '10px 0',
-      borderBottom: '1px solid var(--border)',
-      marginBottom: 4,
-    }}>
-      <button className="btn btn-sm btn-ghost" onClick={() => onChange(shiftDate(date, -1))}>‹</button>
+    <div className="date-nav">
+      <button
+        className="date-nav-arrow"
+        onClick={() => onChange(shiftDate(date, -1))}
+        title="Previous day"
+      >
+        <Icon name="chevron-left" size={16} />
+      </button>
 
-      {/* Clicking the date opens a native calendar picker */}
       <div style={{ position: 'relative' }}>
         <button
-          className="btn btn-sm btn-ghost"
-          style={{ fontWeight: 600, fontSize: 14, minWidth: 160 }}
+          className="date-nav-label"
           onClick={() => pickerRef.current?.showPicker()}
           title="Pick a date"
         >
@@ -57,12 +55,16 @@ export function DateNav({ date, onChange }) {
       </div>
 
       <button
-        className="btn btn-sm btn-ghost"
+        className="date-nav-arrow"
         onClick={() => onChange(shiftDate(date, 1))}
         disabled={isToday}
-      >›</button>
+        title="Next day"
+      >
+        <Icon name="chevron-right" size={16} />
+      </button>
+
       {!isToday && (
-        <button className="btn btn-sm btn-secondary" onClick={() => onChange(todayStr)}>
+        <button className="date-nav-today" onClick={() => onChange(todayStr)}>
           Today
         </button>
       )}

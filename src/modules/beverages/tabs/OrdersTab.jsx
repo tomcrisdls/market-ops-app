@@ -63,10 +63,9 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
   return (
     <div className="screen">
       <div className="actions-bar">
-        <div className="filter-pills">
+        <div className="segmented-control">
           {STATUS_FILTERS.map(s => {
             const count  = counts[s]
-            const color  = PILL_COLORS[s]
             const active = filter === s
             return (
               <button
@@ -75,13 +74,12 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                 onClick={() => setFilter(s)}
               >
                 {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-                {count > 0 && color && (
+                {count > 0 && s !== 'all' && (
                   <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    marginLeft: 5, minWidth: 18, height: 18, borderRadius: 9,
-                    fontSize: 11, fontWeight: 700, lineHeight: 1, padding: '0 5px',
-                    background: active ? 'rgba(255,255,255,0.25)' : color.bg,
-                    color:      active ? '#fff' : color.text,
+                    marginLeft: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: active ? 0.7 : 0.5,
                   }}>
                     {count}
                   </span>

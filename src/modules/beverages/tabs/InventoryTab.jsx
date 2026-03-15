@@ -35,7 +35,9 @@ export function InventoryTab({ inventory, deliveries, distributions, onLogDelive
   return (
     <div className="screen">
       <div className="actions-bar">
-        <span />
+        <div style={{ fontSize: 13, color: 'var(--sub)', fontWeight: 500 }}>
+          {PRODUCTS.length} products
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={onLogDelivery}>+ Log Delivery</button>
           <button className="btn btn-primary" onClick={onReceiveStock}>+ Receive Stock</button>

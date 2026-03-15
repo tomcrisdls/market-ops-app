@@ -49,21 +49,19 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
     <div className="screen">
       {/* Actions bar */}
       <div className="actions-bar">
-        <div className="filter-pills">
+        <div className="segmented-control">
           {DIST_FILTERS.map(f => {
             const count  = counts[f]
-            const color  = PILL_COLORS[f]
             const active = filter === f
             return (
               <button key={f} className={`pill${active ? ' active' : ''}`} onClick={() => setFilter(f)}>
                 {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-                {count > 0 && color && (
+                {count > 0 && f !== 'all' && (
                   <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    marginLeft: 5, minWidth: 18, height: 18, borderRadius: 9,
-                    fontSize: 11, fontWeight: 700, lineHeight: 1, padding: '0 5px',
-                    background: active ? 'rgba(255,255,255,0.25)' : color.bg,
-                    color:      active ? '#fff' : color.text,
+                    marginLeft: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    opacity: active ? 0.7 : 0.5,
                   }}>
                     {count}
                   </span>

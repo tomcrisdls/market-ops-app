@@ -387,6 +387,61 @@ body {
   border-top: 1px solid var(--border);
 }
 
+/* ── DATE NAV ── */
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 6px;
+}
+.date-nav-arrow {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--sub);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.date-nav-arrow:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+.date-nav-arrow:disabled { opacity: 0.25; cursor: default; }
+.date-nav-label {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.date-nav-label:hover { background: var(--surface-2); }
+.date-nav-today {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--red);
+  background: var(--red-light);
+  border: 1px solid var(--red-mid);
+  border-radius: 980px;
+  padding: 3px 11px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-left: 6px;
+  transition: background 0.12s;
+  letter-spacing: 0.1px;
+}
+.date-nav-today:hover { background: var(--red-mid); }
+
 /* ── ACTIONS BAR ── */
 .actions-bar {
   display: flex;
@@ -397,6 +452,37 @@ body {
   gap: 10px;
 }
 .actions-bar-label { color: var(--sub); font-size: 13px; }
+
+/* Segmented control — iOS-style filter tabs */
+.segmented-control {
+  display: inline-flex;
+  background: #ebebf0;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 1px;
+}
+.segmented-control .pill {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sub);
+  cursor: pointer;
+  transition: background 0.15s, color 0.12s, box-shadow 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.segmented-control .pill:hover:not(.active) { color: var(--text); }
+.segmented-control .pill.active {
+  background: #ffffff;
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12), 0 0.5px 1.5px rgba(0,0,0,0.07);
+}
+
+/* Legacy loose pills (used in Tracker, other places) */
 .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
 .pill {
   padding: 6px 14px;
