@@ -1,5 +1,6 @@
 import { fmtDate, fmtMoney } from '../../../lib/utils'
 import { KIOSKS } from '../../../lib/constants'
+import logoFull from '../../../assets/logo-full.png'
 
 /**
  * Renders the printable official invoice.
@@ -14,10 +15,7 @@ export function InvoicePreview({ invoice }) {
       {/* Header */}
       <div className="oi-header">
         <div>
-          <div className="oi-logo-text">TOMNY</div>
-          <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-            Time Out Market New York
-          </div>
+          <img src={logoFull} alt="Time Out Market New York" style={{ height: 80, width: 'auto', objectFit: 'contain' }} />
         </div>
         <div className="oi-title-block">
           <div className="oi-title-word">Invoice</div>

@@ -1,5 +1,6 @@
 import { fmtDate } from '../../../lib/utils'
 import { KIOSKS, PRODUCTS } from '../../../lib/constants'
+import logoFull from '../../../assets/logo-full.png'
 
 function KitchenSection({ distribution }) {
   const kiosk = KIOSKS.find(k => k.id === distribution.kioskId)
@@ -71,8 +72,7 @@ export function DistributionSheet({ distribution, distributions }) {
       {/* Header — shown once */}
       <div className="oi-header" style={{ marginBottom: 20 }}>
         <div>
-          <div className="oi-logo-text">TOMNY</div>
-          <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Time Out Market New York</div>
+          <img src={logoFull} alt="Time Out Market New York" style={{ height: 72, width: 'auto', objectFit: 'contain' }} />
         </div>
         <div className="oi-title-block">
           <div className="oi-title-word" style={{ fontSize: 22 }}>Distribution Sheet</div>

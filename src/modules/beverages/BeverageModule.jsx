@@ -16,6 +16,7 @@ import { DateNav }             from './components/DateNav'
 import { ConfirmModal }        from './components/ConfirmModal'
 import { today, uid, invCode, getPhase, calcTotals, findKiosk, findProduct, fmtMoney } from '../../lib/utils'
 import { KIOSKS } from '../../lib/constants'
+import logoCircular from '../../assets/logo-circular.png'
 
 const TABS = [
   { id: 'orders',       icon: '📥', label: 'Orders'       },
@@ -225,6 +226,10 @@ export function BeverageModule() {
       <div className="module-layout">
         {/* Sidebar nav */}
         <aside className="sidebar">
+          {/* Brand badge */}
+          <div style={{ padding: '12px 16px 16px', borderBottom: '1px solid var(--border)', marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
+            <img src={logoCircular} alt="Time Out Market NY" style={{ width: 100, height: 100, objectFit: 'contain' }} />
+          </div>
           {TABS.map(tab => (
             <button
               key={tab.id}
