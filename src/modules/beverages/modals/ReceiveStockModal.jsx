@@ -109,6 +109,10 @@ function UploadTab({ onSave, onClose }) {
       const base64 = await fileToBase64(file)
       const mediaType = file.type === 'application/pdf' ? 'application/pdf' : file.type
 
+      const productCatalog = PRODUCTS.map(p =>
+        `- id="${p.id}" | name="${p.name}" | also known as "${p.invName}" | vendor="${p.vendor}"`
+      ).join('\n')
+
       const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
@@ -121,7 +125,18 @@ function UploadTab({ onSave, onClose }) {
             },
             {
               type: 'text',
-              text: 'Extract all product line items from this vendor invoice. Return ONLY a JSON array with no other text:\n[{"name": string, "qty": number, "unitPrice": number}]\nOnly include product rows with quantities. Do not include fees, deposits, or totals.',
+              text: `Extract product line items from this vendor invoice and match each to our product catalog.
+
+Our products:
+${productCatalog}
+
+Return ONLY a JSON array with no other text:
+[{"name": string, "qty": number, "unitPrice": number, "productId": string_or_empty}]
+
+Rules:
+- Only include actual product rows with quantities (skip freight fees, deposits, totals, tax lines)
+- Set "productId" to the matching product id from our catalog if you can identify it, otherwise ""
+- Match by meaning, not exact text — e.g. "WATER NATURAL ANTICA FONTE / SAN BENE 24/330 ML" = "sb-still"`,
             },
           ],
         }],
@@ -131,14 +146,17 @@ function UploadTab({ onSave, onClose }) {
       const jsonText = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
       const parsed = JSON.parse(jsonText)
 
-      // Auto-match by name similarity
+      // AI already matched productIds; fall back to name similarity for any misses
       const matched = parsed.map(item => {
-        const nameLower = item.name.toLowerCase()
-        const match = PRODUCTS.find(p =>
+        if (item.productId && PRODUCTS.find(p => p.id === item.productId)) {
+          return item
+        }
+        const nameLower = (item.name || '').toLowerCase()
+        const fallback = PRODUCTS.find(p =>
           nameLower.includes(p.name.split(' ')[0].toLowerCase()) ||
-          p.name.toLowerCase().includes(nameLower.split(' ')[0])
+          p.invName.toLowerCase().split(' ').some(w => nameLower.includes(w))
         )
-        return { ...item, productId: match?.id ?? '' }
+        return { ...item, productId: fallback?.id ?? '' }
       })
       setRows(matched)
     } catch (err) {
