@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { PRODUCTS } from '../../../lib/constants'
-import { findProduct } from '../../../lib/utils'
+import { today, fmtDate, findProduct } from '../../../lib/utils'
 
 export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
   const [notes, setNotes] = useState('')
+  const [date,  setDate]  = useState('')
   const [qtys,  setQtys]  = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
 
   useEffect(() => {
@@ -12,6 +13,7 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
     order.items.forEach(item => { q[item.productId] = item.qty })
     setQtys(q)
     setNotes(order.notes || '')
+    setDate(order.date || today())
   }, [order])
 
   if (!isOpen || !order) return null
@@ -23,11 +25,12 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
       .filter(p => (qtys[p.id] || 0) > 0)
       .map(p => ({ productId: p.id, qty: parseInt(qtys[p.id]) }))
     if (items.length === 0) { alert('Select at least one item.'); return }
-    onSave(order.id, items, notes)
+    onSave(order.id, items, notes, date)
     onClose()
   }
 
   const selectedCount = PRODUCTS.filter(p => (qtys[p.id] || 0) > 0).length
+  const isFutureDate  = date > today()
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -35,6 +38,22 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
         <div className="modal-header">
           <div className="modal-title">Edit Order</div>
           <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        {/* Date field */}
+        <div className="form-group">
+          <label className="form-label">Date</label>
+          <input
+            type="date"
+            className="form-input"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+          {isFutureDate && (
+            <div style={{ marginTop: 6, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span>📅</span> Scheduled for <strong>{fmtDate(date)}</strong>
+            </div>
+          )}
         </div>
 
         {/* Items header */}

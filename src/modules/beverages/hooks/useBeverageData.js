@@ -143,9 +143,9 @@ export function useBeverageData() {
     setOrdersState(prev => prev.map(o => o.id === id ? { ...o, status } : o))
   }, [])
 
-  const updateOrder = useCallback(async (id, items, notes) => {
-    await db.updateOrder(id, { items, notes })
-    setOrdersState(prev => prev.map(o => o.id === id ? { ...o, items, notes } : o))
+  const updateOrder = useCallback(async (id, items, notes, date) => {
+    await db.updateOrder(id, { items, notes, date })
+    setOrdersState(prev => prev.map(o => o.id === id ? { ...o, items, notes, ...(date && { date }) } : o))
   }, [])
 
   // ── DISTRIBUTIONS ──────────────────────────────────────

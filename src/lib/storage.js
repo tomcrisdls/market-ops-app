@@ -98,8 +98,8 @@ export async function patchOrderStatus(id, status) {
   if (error) throw error
 }
 
-export async function updateOrder(id, { items, notes }) {
-  const { error } = await supabase.from('orders').update({ notes: notes || null }).eq('id', id)
+export async function updateOrder(id, { items, notes, date }) {
+  const { error } = await supabase.from('orders').update({ notes: notes || null, ...(date && { date }) }).eq('id', id)
   if (error) throw error
   const { error: e2 } = await supabase.from('order_items').delete().eq('order_id', id)
   if (e2) throw e2
