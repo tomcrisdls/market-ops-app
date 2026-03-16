@@ -1,7 +1,52 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtMoney, calcTotals, findKiosk, findProduct } from '../../../lib/utils'
 import { Icon } from '../../../components/icons/Icons'
+
+function PipelineStepper({ status }) {
+  const steps = [
+    { id: 'pending',     label: 'Ordered',      color: '#f97316' },
+    { id: 'distributed', label: 'Distributed',  color: '#3b82f6' },
+    { id: 'invoiced',    label: 'Invoiced',      color: '#16a34a' },
+  ]
+  const idx = status === 'pending' ? 0 : status === 'distributed' ? 1 : 2
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginTop: 14, padding: '0 2px' }}>
+      {steps.map((step, i) => (
+        <Fragment key={step.id}>
+          {i > 0 && (
+            <div style={{
+              flex: 1,
+              height: 2,
+              marginTop: 4,
+              background: i <= idx ? '#16a34a' : 'var(--border)',
+              borderRadius: 1,
+            }} />
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+            <div style={{
+              width: i === idx ? 10 : 8,
+              height: i === idx ? 10 : 8,
+              borderRadius: '50%',
+              background: i < idx ? '#16a34a' : i === idx ? step.color : 'var(--border)',
+              boxShadow: i === idx ? `0 0 0 3px ${step.color}22` : 'none',
+              flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: 10,
+              color: i === idx ? 'var(--text)' : i < idx ? '#16a34a' : 'var(--sub-light)',
+              fontWeight: i === idx ? 600 : 400,
+              whiteSpace: 'nowrap',
+              letterSpacing: '0.01em',
+            }}>
+              {step.label}
+            </span>
+          </div>
+        </Fragment>
+      ))}
+    </div>
+  )
+}
 
 const STATUS_FILTERS = ['all', 'pending', 'distributed', 'invoiced']
 
@@ -177,6 +222,29 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                     )}
 
                     {order.notes && <div className="item-card-notes">{order.notes}</div>}
+
+                    {/* Pipeline stepper */}
+                    <PipelineStepper status={order.status} />
+
+                    {/* Next-step CTA */}
+                    {order.status === 'pending' && (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                        onClick={() => onDistribute(order.id)}
+                      >
+                        Distribute now →
+                      </button>
+                    )}
+                    {order.status === 'distributed' && (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                        onClick={() => onInvoice(order.id)}
+                      >
+                        Generate invoice →
+                      </button>
+                    )}
                   </div>
                 )
               })}

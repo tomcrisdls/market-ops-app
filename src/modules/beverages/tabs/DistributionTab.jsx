@@ -86,7 +86,21 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
       {distributions.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon-wrap"><Icon name="truck" size={36} /></div>
-          <p>No distributions for this day</p>
+          {pendingTodayOrders?.length > 0 ? (
+            <>
+              <p style={{ marginBottom: 4 }}>
+                {pendingTodayOrders.length} order{pendingTodayOrders.length !== 1 ? 's are' : ' is'} pending distribution today
+              </p>
+              <p style={{ fontSize: 13, color: 'var(--sub-light)', marginBottom: 16 }}>
+                Go to Orders to distribute individually, or distribute all at once.
+              </p>
+              <button className="btn btn-primary" onClick={onDistributeAll}>
+                Distribute All Today ({pendingTodayOrders.length}) →
+              </button>
+            </>
+          ) : (
+            <p>No distributions for this day</p>
+          )}
         </div>
       ) : (
         <>

@@ -317,7 +317,20 @@ export function BeverageModule() {
               onDistribute={goDistributeOrder}
               onInvoice={goInvoiceFromOrder}
               onDelete={handleDeleteOrder}
-              onEdit={(id) => setEditModalOrderId(id)}
+              onEdit={(id) => {
+                const hasDist = data.distributions.some(d => d.orderId === id)
+                if (hasDist) {
+                  openConfirm({
+                    title:        'Order Already Distributed',
+                    message:      'This order has already been distributed. Editing it will not update the existing distribution — you\'ll need to edit the distribution separately.',
+                    confirmLabel: 'Edit Anyway',
+                    variant:      'warning',
+                    onConfirm:    () => setEditModalOrderId(id),
+                  })
+                } else {
+                  setEditModalOrderId(id)
+                }
+              }}
             />
           )}
 
