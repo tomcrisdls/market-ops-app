@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Header }          from './components/layout/Header'
-import { BeverageModule }  from './modules/beverages/BeverageModule'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { Header }         from './components/layout/Header'
+import { LoginPage }      from './components/auth/LoginPage'
+import { BeverageModule } from './modules/beverages/BeverageModule'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
@@ -37,15 +39,39 @@ function MobileBlock() {
   )
 }
 
-export default function App() {
+function AppContent() {
+  const { user, loading } = useAuth()
   const isDesktop = useIsDesktop()
 
   if (!isDesktop) return <MobileBlock />
+
+  // Blank screen while session is being checked
+  if (loading) return (
+    <div style={{
+      minHeight: '100dvh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--bg)',
+    }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid var(--border)', borderTopColor: 'var(--red)', animation: 'spin 0.7s linear infinite' }} />
+    </div>
+  )
+
+  if (!user) return <LoginPage />
 
   return (
     <>
       <Header moduleTitle="N/A Beverage Management" />
       <BeverageModule />
     </>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
