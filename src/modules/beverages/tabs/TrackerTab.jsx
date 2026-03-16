@@ -64,11 +64,12 @@ function trendArrow(counts) {
   return { symbol: '→', color: 'var(--sub)' }
 }
 
+
 // Heat shade for a cell — higher count relative to row max = warmer tint
 function heatBg(count, rowMax) {
   if (count === 0 || rowMax === 0) return undefined
-  const intensity = count / rowMax          // 0–1
-  const alpha     = 0.06 + intensity * 0.18 // 0.06–0.24
+  const intensity = count / rowMax
+  const alpha     = 0.06 + intensity * 0.18
   return `rgba(220, 38, 38, ${alpha})`
 }
 
@@ -123,7 +124,6 @@ function ConsumptionView({ distributions }) {
                       textAlign:       'center',
                       color:           c === 0 ? 'var(--sub)' : 'inherit',
                       backgroundColor: heatBg(c, rowMax),
-                      transition:      'background-color 0.2s',
                     }}>
                       {c === 0 ? '—' : c}
                     </td>

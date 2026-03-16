@@ -10,9 +10,8 @@ export const KIOSKS = [
 ]
 
 export const PRODUCTS = [
-  { id: 'sb-still',     name: 'San Bene Still 330ml',     invName: 'SanBenedetto Still 330ml',                                   defaultPrice: 29.95, vendor: 'AceEndico',    trackerCategory: 'water', hasDeposit: true  },
-  { id: 'sb-sparkling', name: 'San Bene Sparkling 330ml', invName: 'SanBenedetto Sparkling 330ml',                               defaultPrice: 29.95, vendor: 'AceEndico',    trackerCategory: 'water', hasDeposit: true  },
-  { id: 'sb-still-can', name: 'San Bene Still Can 330ml', invName: 'SanBenedetto Still Can 330ml',                               defaultPrice: 18.28, vendor: 'AceEndico',    trackerCategory: 'water', hasDeposit: false },
+  { id: 'sb-still',     name: 'San Bene Still 330ml',     invName: 'SanBenedetto Still 330ml',     defaultPrice: 29.95, vendor: 'AceEndico', trackerCategory: 'water', hasDeposit: true  },
+  { id: 'sb-sparkling', name: 'San Bene Sparkling 330ml', invName: 'SanBenedetto Sparkling 330ml', defaultPrice: 29.95, vendor: 'AceEndico', trackerCategory: 'water', hasDeposit: true  },
   { id: 'coke',         name: 'Coke Bottle',              invName: 'Coke 12oz bottles',                                          defaultPrice: 41.68, vendor: 'Driscoll',     trackerCategory: 'soda',  hasDeposit: false },
   { id: 'diet-coke',    name: 'Diet Coke Bottle',         invName: 'Diet Coke 8oz bottles',                                      defaultPrice: 36.37, vendor: 'Driscoll',     trackerCategory: 'soda',  hasDeposit: false },
   { id: 'sprite',       name: 'Sprite Bottle',            invName: 'Sprite 12oz bottles',                                        defaultPrice: 42.51, vendor: 'Driscoll',     trackerCategory: 'soda',  hasDeposit: false },
