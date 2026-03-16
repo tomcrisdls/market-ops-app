@@ -7,6 +7,7 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
   const [date,    setDate]    = useState(today())
   const [notes,   setNotes]   = useState('')
   const [qtys,    setQtys]    = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
+  const [error,   setError]   = useState(null)
 
   if (!isOpen) return null
 
@@ -18,9 +19,10 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
       .map(p => ({ productId: p.id, qty: parseInt(qtys[p.id]) }))
 
     if (!kioskId || !date || items.length === 0) {
-      alert('Select kitchen, date, and at least one item.')
+      setError('Select a kitchen, date, and at least one item.')
       return
     }
+    setError(null)
     onSave(kioskId, date, items, notes)
     setQtys(Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
     setNotes('')
@@ -49,7 +51,7 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
             </select>
           </div>
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-            <label className="form-label">Date</label>
+            <label className="form-label">Delivery Date</label>
             <input
               type="date"
               className="form-input"
@@ -161,6 +163,9 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
           />
         </div>
 
+        {error && (
+          <div className="alert alert-warn" style={{ marginBottom: 12 }}>{error}</div>
+        )}
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSave}>

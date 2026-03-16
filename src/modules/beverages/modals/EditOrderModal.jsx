@@ -6,6 +6,7 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
   const [notes, setNotes] = useState('')
   const [date,  setDate]  = useState('')
   const [qtys,  setQtys]  = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!order) return
@@ -24,7 +25,8 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
     const items = PRODUCTS
       .filter(p => (qtys[p.id] || 0) > 0)
       .map(p => ({ productId: p.id, qty: parseInt(qtys[p.id]) }))
-    if (items.length === 0) { alert('Select at least one item.'); return }
+    if (items.length === 0) { setError('Select at least one item.'); return }
+    setError(null)
     onSave(order.id, items, notes, date)
     onClose()
   }
@@ -42,7 +44,7 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
 
         {/* Date field */}
         <div className="form-group">
-          <label className="form-label">Date</label>
+          <label className="form-label">Delivery Date</label>
           <input
             type="date"
             className="form-input"
@@ -107,6 +109,9 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
           <textarea className="form-textarea" rows={2} placeholder="Urgent, special notes..." value={notes} onChange={e => setNotes(e.target.value)} />
         </div>
 
+        {error && (
+          <div className="alert alert-warn" style={{ marginBottom: 12 }}>{error}</div>
+        )}
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSave}>

@@ -154,7 +154,13 @@ export function BeverageModule() {
       setPreDistId(dist.id)
       setInvoiceModalOpen(true)
     } else {
-      alert('Distribute first, then generate an invoice.')
+      openConfirm({
+        title:        'Distribute First',
+        message:      'This order hasn\'t been distributed yet. Distribute it first, then generate an invoice.',
+        confirmLabel: 'Go to Distribution',
+        variant:      'warning',
+        onConfirm:    () => setActiveTab('distribution'),
+      })
     }
   }
 
@@ -329,6 +335,7 @@ export function BeverageModule() {
               orders={dayOrders}
               distributions={data.distributions}
               inventory={data.inventory}
+              activeDate={activeDate}
               onNewOrder={() => setOrderModalOpen(true)}
               onDistribute={goDistributeOrder}
               onInvoice={goInvoiceFromOrder}

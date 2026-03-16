@@ -1,6 +1,6 @@
 import { useState, Fragment } from 'react'
 import { KIOSKS } from '../../../lib/constants'
-import { fmtMoney, calcTotals, findKiosk, findProduct } from '../../../lib/utils'
+import { fmtMoney, calcTotals, findKiosk, findProduct, today, fmtDate } from '../../../lib/utils'
 import { Icon } from '../../../components/icons/Icons'
 
 function PipelineStepper({ status }) {
@@ -79,7 +79,8 @@ function buildAuditDiff(order, distributions) {
   return diffs.length > 0 ? diffs : null
 }
 
-export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDistribute, onInvoice, onDelete, onEdit }) {
+export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDistribute, onInvoice, onDelete, onEdit, activeDate }) {
+  const todayStr = today()
   const counts = {
     all:         orders.length,
     pending:     orders.filter(o => o.status === 'pending').length,
@@ -152,6 +153,8 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                 const borderColor = order.status === 'invoiced'    ? '#16a34a'
                                   : order.status === 'distributed' ? '#3b82f6'
                                   : '#f97316'
+                const isFuture = order.date > todayStr
+                const isPast   = order.date < todayStr
                 return (
                   <div className="card" key={order.id} style={{ borderLeft: `3px solid ${borderColor}` }}>
                     {/* Header */}
@@ -161,6 +164,16 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                           <strong>{kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : order.kioskId}</strong>
                           <span className={`badge badge-${order.status}`}>{order.status}</span>
                           {diffs && <span className="badge badge-warn">partial</span>}
+                          {isFuture && (
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              📅 {fmtDate(order.date)}
+                            </span>
+                          )}
+                          {isPast && order.date !== todayStr && (
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e', background: '#fffbeb', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              {fmtDate(order.date)}
+                            </span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <span className="item-card-amount">{fmtMoney(totals.total)}</span>

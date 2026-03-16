@@ -9,6 +9,7 @@ function ManualTab({ onSave, onClose }) {
   const [date,   setDate]   = useState(today())
   const [vendor, setVendor] = useState(VENDORS[0])
   const [qtys,   setQtys]   = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
+  const [error,  setError]  = useState(null)
 
   const setQty = (id, val) => setQtys(prev => ({ ...prev, [id]: Math.max(0, val) }))
 
@@ -16,7 +17,8 @@ function ManualTab({ onSave, onClose }) {
     const items = PRODUCTS
       .filter(p => (qtys[p.id] || 0) > 0)
       .map(p => ({ productId: p.id, qty: parseInt(qtys[p.id]) }))
-    if (items.length === 0) { alert('Enter at least one item.'); return }
+    if (items.length === 0) { setError('Enter at least one item.'); return }
+    setError(null)
     onSave(date, vendor, items)
     onClose()
   }
@@ -81,6 +83,9 @@ function ManualTab({ onSave, onClose }) {
         })}
       </div>
 
+      {error && (
+        <div className="alert alert-warn" style={{ marginBottom: 12 }}>{error}</div>
+      )}
       <div className="modal-footer">
         <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary" onClick={handleSave}>
@@ -170,7 +175,8 @@ Rules:
     const items = rows
       .filter(r => r.productId && parseInt(r.qty) > 0)
       .map(r => ({ productId: r.productId, qty: parseInt(r.qty) }))
-    if (items.length === 0) { alert('Match at least one item to a product.'); return }
+    if (items.length === 0) { setError('Match at least one item to a product before confirming.'); return }
+    setError(null)
     onSave(date, vendor, items)
     onClose()
   }
