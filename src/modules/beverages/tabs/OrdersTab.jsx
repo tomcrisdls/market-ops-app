@@ -79,7 +79,7 @@ function buildAuditDiff(order, distributions) {
   return diffs.length > 0 ? diffs : null
 }
 
-export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDistribute, onInvoice, onDelete, onEdit, activeDate }) {
+export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDistribute, onInvoice, onDelete, onEdit, onDeliverRemaining, activeDate }) {
   const todayStr = today()
   const counts = {
     all:         orders.length,
@@ -91,7 +91,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
   const [filter,   setFilter]   = useState(() => counts.pending > 0 ? 'pending' : 'all')
   const [expanded, setExpanded] = useState({})
 
-  const isExpanded   = (id) => expanded[id] !== false  // default: expanded
+  const isExpanded   = (id) => expanded[id] === true   // default: collapsed
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }))
 
   const visible = filter === 'all' ? orders : orders.filter(o => o.status === filter)
@@ -147,9 +147,10 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
           <div key={date}>
             <div className="card-grid">
               {group.map(order => {
-                const kiosk   = findKiosk(order.kioskId, KIOSKS)
-                const totals  = calcTotals(order.items, inventory)
-                const diffs   = order.status !== 'pending' ? buildAuditDiff(order, distributions) : null
+                const kiosk        = findKiosk(order.kioskId, KIOSKS)
+                const totals       = calcTotals(order.items, inventory)
+                const diffs        = order.status !== 'pending' ? buildAuditDiff(order, distributions) : null
+                const hasRemaining = diffs && diffs.some(d => d.ordered > d.distributed)
                 const borderColor = order.status === 'invoiced'    ? '#16a34a'
                                   : order.status === 'distributed' ? '#3b82f6'
                                   : '#f97316'
@@ -211,7 +212,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
 
                     {/* Items toggle */}
                     <button className="card-items-toggle" onClick={() => toggleExpand(order.id)}>
-                      <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''} · {fmtMoney(totals.subtotal)}</span>
+                      <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
                       <span className="toggle-chevron">{isExpanded(order.id) ? '▲' : '▼'}</span>
                     </button>
 
@@ -256,6 +257,15 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                         onClick={() => onInvoice(order.id)}
                       >
                         Generate invoice →
+                      </button>
+                    )}
+                    {hasRemaining && (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ width: '100%', justifyContent: 'center', marginTop: 6, fontSize: 13, color: '#c2410c', borderColor: '#fed7aa' }}
+                        onClick={() => onDeliverRemaining(order)}
+                      >
+                        Deliver remaining →
                       </button>
                     )}
                   </div>

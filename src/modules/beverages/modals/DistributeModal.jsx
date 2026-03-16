@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react'
 import { KIOSKS, PRODUCTS } from '../../../lib/constants'
 import { today, findKiosk, fmtDate } from '../../../lib/utils'
 
-export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId, defaultDate, onSave, editDist, onUpdate }) {
+export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId, preItems, defaultDate, onSave, editDist, onUpdate }) {
   const [selectedOrderId, setSelectedOrderId] = useState('')
   const [kioskId, setKioskId]   = useState(KIOSKS[0].id)
   const [date,    setDate]       = useState(today())
   const [notes,   setNotes]      = useState('')
   const [qtys,    setQtys]       = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
   const [showAll, setShowAll]    = useState(false)
+  const [error,   setError]      = useState(null)
+
+  const isRemainingMode = !!preItems
 
   const isEditMode = !!editDist
   const pendingOrders = orders.filter(o => o.status === 'pending')
@@ -25,6 +28,14 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
       const filled = Object.fromEntries(PRODUCTS.map(p => [p.id, 0]))
       editDist.items.forEach(i => { filled[i.productId] = i.qty })
       setQtys(filled)
+    } else if (preItems) {
+      setDate(defaultDate ?? today())
+      setNotes('')
+      setSelectedOrderId('')
+      setKioskId(preItems.kioskId)
+      const filled = Object.fromEntries(PRODUCTS.map(p => [p.id, 0]))
+      preItems.items.forEach(i => { filled[i.productId] = i.qty })
+      setQtys(filled)
     } else if (preOrderId) {
       setDate(defaultDate ?? today())
       setNotes('')
@@ -37,7 +48,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
       setKioskId(KIOSKS[0].id)
       setQtys(Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
     }
-  }, [isOpen, preOrderId, defaultDate, editDist])
+  }, [isOpen, preOrderId, preItems, defaultDate, editDist])
 
   const loadFromOrder = (orderId) => {
     if (!orderId) {
@@ -68,9 +79,13 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
     ? new Set(fromOrder.items.map(i => i.productId))
     : null
 
-  const productsToShow = fromOrder && !showAll
-    ? PRODUCTS.filter(p => orderedProductIds.has(p.id))
-    : PRODUCTS
+  const preItemIds = isRemainingMode ? new Set(preItems.items.map(i => i.productId)) : null
+
+  const productsToShow = isRemainingMode
+    ? PRODUCTS.filter(p => preItemIds.has(p.id))
+    : fromOrder && !showAll
+      ? PRODUCTS.filter(p => orderedProductIds.has(p.id))
+      : PRODUCTS
 
   const hasInventoryWarning = PRODUCTS.some(p => {
     const q = parseInt(qtys[p.id]) || 0
@@ -86,9 +101,10 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
       .filter(p => (parseInt(qtys[p.id]) || 0) > 0)
       .map(p => ({ productId: p.id, qty: parseInt(qtys[p.id]) }))
     if (!kioskId || !date || items.length === 0) {
-      alert('Fill in kiosk, date, and at least one item.')
+      setError('Fill in kiosk, date, and at least one item.')
       return
     }
+    setError(null)
     if (isEditMode) {
       onUpdate(editDist.id, editDist.items, items, notes)
     } else {
@@ -99,7 +115,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
     onClose()
   }
 
-  const title = isEditMode ? 'Edit Distribution' : fromOrder ? 'Confirm Distribution' : 'New Distribution'
+  const title = isEditMode ? 'Edit Distribution' : preItems ? 'Deliver Remaining' : fromOrder ? 'Confirm Distribution' : 'New Distribution'
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -109,8 +125,25 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Order banner or selector — hidden in edit mode */}
-        {!isEditMode && fromOrder ? (
+        {/* Remaining mode: context banner */}
+        {isRemainingMode && (
+          <div style={{
+            background: '#fff7ed', border: '1px solid #fed7aa',
+            borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13,
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span style={{ fontSize: 15 }}>📦</span>
+            <div>
+              <span style={{ fontWeight: 600, color: '#c2410c' }}>
+                {findKiosk(preItems.kioskId, KIOSKS)?.name ?? preItems.kioskId}
+              </span>
+              <span style={{ color: '#92400e' }}> — items not yet delivered</span>
+            </div>
+          </div>
+        )}
+
+        {/* Order banner or selector — hidden in edit & remaining modes */}
+        {!isEditMode && !isRemainingMode && fromOrder ? (
           <div style={{
             background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13,
@@ -123,7 +156,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
               {fromOrder.notes ? ` · ${fromOrder.notes}` : ''}
             </div>
           </div>
-        ) : !isEditMode ? (
+        ) : !isEditMode && !isRemainingMode ? (
           <div className="form-group">
             <label className="form-label">From Order <span style={{ fontWeight: 400, color: 'var(--sub)', fontSize: 11 }}>— or leave blank for ad-hoc</span></label>
             <select className="form-select" value={selectedOrderId} onChange={e => handleOrderSelect(e.target.value)}>
@@ -142,16 +175,18 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
 
         {/* Kitchen + Date */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-          <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
-            <label className="form-label">Kitchen</label>
-            <select className="form-select" value={kioskId} onChange={e => setKioskId(e.target.value)} disabled={!!fromOrder || isEditMode}>
-              {KIOSKS.map(k => (
-                <option key={k.id} value={k.id}>{k.id.replace(/^K0?/, 'K')} · {k.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-            <label className="form-label">Date</label>
+          {!isRemainingMode && (
+            <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+              <label className="form-label">Kitchen</label>
+              <select className="form-select" value={kioskId} onChange={e => setKioskId(e.target.value)} disabled={!!fromOrder || isEditMode}>
+                {KIOSKS.map(k => (
+                  <option key={k.id} value={k.id}>{k.id.replace(/^K0?/, 'K')} · {k.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="form-group" style={{ flex: isRemainingMode ? 'unset' : 1, marginBottom: 0, width: isRemainingMode ? '100%' : undefined }}>
+            <label className="form-label">Delivery Date</label>
             <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
           </div>
         </div>
@@ -204,7 +239,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
           })}
         </div>
 
-        {fromOrder && !showAll && (
+        {!isRemainingMode && fromOrder && !showAll && (
           <button className="btn btn-ghost btn-sm" style={{ marginBottom: 8 }} onClick={() => setShowAll(true)}>
             + Add other items
           </button>
@@ -214,6 +249,10 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
           <div className="alert alert-warn" style={{ marginTop: 4, marginBottom: 12 }}>
             ⚠ One or more items exceed available cage stock
           </div>
+        )}
+
+        {error && (
+          <div className="alert alert-warn" style={{ marginBottom: 12 }}>{error}</div>
         )}
 
         <div className="form-group">
@@ -226,9 +265,11 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
           <button className="btn btn-primary" onClick={handleSave}>
             {isEditMode
               ? `Save Changes${selectedCount > 0 ? ` (${selectedCount} items)` : ''}`
-              : fromOrder
-                ? 'Confirm & Distribute'
-                : `Distribute & Deduct${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
+              : isRemainingMode
+                ? 'Confirm Delivery'
+                : fromOrder
+                  ? 'Confirm & Distribute'
+                  : `Distribute & Deduct${selectedCount > 0 ? ` (${selectedCount})` : ''}`}
           </button>
         </div>
       </div>

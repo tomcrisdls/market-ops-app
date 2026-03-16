@@ -38,6 +38,7 @@ export function BeverageModule() {
   const [distributeAllOpen,    setDistributeAllOpen]    = useState(false)
   const [invoiceModalOpen,     setInvoiceModalOpen]     = useState(false)
   const [preOrderId,           setPreOrderId]           = useState(null)
+  const [preDistItems,         setPreDistItems]         = useState(null)
   const [preDistId,            setPreDistId]            = useState(null)
   const [editDistId,           setEditDistId]           = useState(null)
   const [confirm,              setConfirm]              = useState(null)
@@ -180,6 +181,21 @@ export function BeverageModule() {
 
   const openNewDistribution = (orderId) => {
     setPreOrderId(orderId)
+    setDistModalOpen(true)
+  }
+
+  const handleDeliverRemaining = (order) => {
+    const linked = data.distributions.find(d => d.orderId === order.id)
+    if (!linked) return
+    const ordered = Object.fromEntries(order.items.map(i => [i.productId, i.qty]))
+    const remaining = order.items
+      .map(i => {
+        const distQty = linked.items.find(di => di.productId === i.productId)?.qty ?? 0
+        return { productId: i.productId, qty: i.qty - distQty }
+      })
+      .filter(i => i.qty > 0)
+    if (remaining.length === 0) return
+    setPreDistItems({ kioskId: order.kioskId, items: remaining })
     setDistModalOpen(true)
   }
 
@@ -349,6 +365,7 @@ export function BeverageModule() {
               onDistribute={goDistributeOrder}
               onInvoice={goInvoiceFromOrder}
               onDelete={handleDeleteOrder}
+              onDeliverRemaining={handleDeliverRemaining}
               onEdit={(id) => {
                 const hasDist = data.distributions.some(d => d.orderId === id)
                 if (hasDist) {
@@ -437,10 +454,11 @@ export function BeverageModule() {
 
       <DistributeModal
         isOpen={distModalOpen}
-        onClose={() => { setDistModalOpen(false); setPreOrderId(null) }}
+        onClose={() => { setDistModalOpen(false); setPreOrderId(null); setPreDistItems(null) }}
         inventory={data.inventory}
         orders={data.orders}
         preOrderId={preOrderId}
+        preItems={preDistItems}
         defaultDate={activeDate}
         onSave={data.addDistribution}
       />

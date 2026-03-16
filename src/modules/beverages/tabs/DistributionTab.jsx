@@ -18,7 +18,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
   const [filter,        setFilter]        = useState('all')
   const [expanded,      setExpanded]      = useState({})
 
-  const isExpanded   = (id) => expanded[id] !== false
+  const isExpanded   = (id) => expanded[id] === true
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }))
 
   const classify = (d) => {
@@ -227,7 +227,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
 
                   {/* Items toggle */}
                   <button className="card-items-toggle" onClick={() => toggleExpand(dist.id)}>
-                    <span>{dist.items.length} item{dist.items.length !== 1 ? 's' : ''} · {fmtMoney(totals.subtotal)}</span>
+                    <span>{dist.items.length} item{dist.items.length !== 1 ? 's' : ''}</span>
                     <span className="toggle-chevron">{isExpanded(dist.id) ? '▲' : '▼'}</span>
                   </button>
 
