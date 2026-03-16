@@ -77,8 +77,8 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
               Distribute All Today ({pendingTodayOrders.length})
             </button>
           )}
-          <button className="btn btn-primary" onClick={() => onNewDistribution(null)}>
-            + New Distribution
+          <button className="btn btn-ghost" onClick={() => onNewDistribution(null)}>
+            + Manual Entry
           </button>
         </div>
       </div>

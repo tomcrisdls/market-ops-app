@@ -125,9 +125,9 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
           </div>
         ) : !isEditMode ? (
           <div className="form-group">
-            <label className="form-label">From Order (optional)</label>
+            <label className="form-label">From Order <span style={{ fontWeight: 400, color: 'var(--sub)', fontSize: 11 }}>— or leave blank for ad-hoc</span></label>
             <select className="form-select" value={selectedOrderId} onChange={e => handleOrderSelect(e.target.value)}>
-              <option value="">— Standalone distribution —</option>
+              <option value="">— No linked order —</option>
               {pendingOrders.map(o => {
                 const k = findKiosk(o.kioskId, KIOSKS)
                 return (
