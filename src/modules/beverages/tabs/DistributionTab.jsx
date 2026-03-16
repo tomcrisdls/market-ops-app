@@ -71,7 +71,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
           })}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {pendingTodayOrders?.length > 0 && (
+          {pendingTodayOrders?.length > 0 && distributions.length > 0 && (
             <button className="btn btn-secondary" onClick={onDistributeAll} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="bolt" size={13} />
               Distribute All Today ({pendingTodayOrders.length})
