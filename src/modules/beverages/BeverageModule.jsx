@@ -53,6 +53,11 @@ export function BeverageModule() {
   // ── Shared computations ────────────────────────────────
   const pendingTodayOrders  = data.orders.filter(o => o.status === 'pending' && o.date === todayStr)
 
+  // ── Date-filtered slices for tabs ─────────────────────
+  const dayOrders   = data.orders.filter(o => o.date === activeDate)
+  const dayDists    = data.distributions.filter(d => d.date === activeDate)
+  const dayInvoices = data.invoices.filter(i => i.date === activeDate)
+
   // ── Contextual stats per tab ───────────────────────────
   const tabStats = (() => {
     switch (activeTab) {
@@ -120,11 +125,6 @@ export function BeverageModule() {
       default: return []
     }
   })()
-
-  // ── Date-filtered slices for tabs ─────────────────────
-  const dayOrders   = data.orders.filter(o => o.date === activeDate)
-  const dayDists    = data.distributions.filter(d => d.date === activeDate)
-  const dayInvoices = data.invoices.filter(i => i.date === activeDate)
 
   // ── Navigation helpers ────────────────────────────────
   const goDistributeOrder = (orderId) => {
