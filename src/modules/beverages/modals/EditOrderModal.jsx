@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { PRODUCTS } from '../../../lib/constants'
 import { today, fmtDate, findProduct } from '../../../lib/utils'
 
-export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
+export function EditOrderModal({ isOpen, onClose, order, inventory, hasDistribution, onSave }) {
   const [notes, setNotes] = useState('')
   const [date,  setDate]  = useState('')
   const [qtys,  setQtys]  = useState(() => Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
@@ -41,6 +41,16 @@ export function EditOrderModal({ isOpen, onClose, order, inventory, onSave }) {
           <div className="modal-title">Edit Order</div>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
+
+        {hasDistribution && (
+          <div style={{
+            background: '#f0f6ff', border: '1px solid #bfdbfe',
+            borderRadius: 8, padding: '8px 12px', marginBottom: 16,
+            fontSize: 12, color: '#1e40af', lineHeight: 1.5,
+          }}>
+            This order has been distributed. Any items you add will appear as <strong>still owed</strong> on the order card.
+          </div>
+        )}
 
         {/* Date field */}
         <div className="form-group">
