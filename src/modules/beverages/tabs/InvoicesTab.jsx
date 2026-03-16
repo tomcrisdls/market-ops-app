@@ -7,6 +7,10 @@ import { Icon } from '../../../components/icons/Icons'
 export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete, onGoToDistribution }) {
   const [activePreviewId, setActivePreviewId] = useState(null)
   const [copiedId,        setCopiedId]        = useState(null)
+  const [expanded,        setExpanded]        = useState({})
+
+  const isExpanded   = (id) => expanded[id] === true
+  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }))
 
   const copyInvoice = (inv) => {
     const kiosk = findKiosk(inv.kioskId, KIOSKS)
@@ -85,17 +89,19 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
                     <span className="item-card-amount" style={{ color: 'var(--red)' }}>{fmtMoney(inv.total)}</span>
                     <div style={{ display: 'flex', gap: 3 }}>
                       <button
+                        className={`btn-icon${copiedId === inv.id ? ' success' : ''}`}
+                        title="Copy invoice text"
+                        onClick={() => copyInvoice(inv)}
+                      >
+                        <Icon name={copiedId === inv.id ? 'check' : 'clipboard'} size={14} />
+                      </button>
+                      <button
                         className={`btn-icon${activePreviewId === inv.id ? ' primary' : ''}`}
                         title={activePreviewId === inv.id ? 'Hide Invoice' : 'View / Print'}
                         onClick={() => handleView(inv.id)}
                       >
                         <Icon name="eye" size={14} />
                       </button>
-                      {inv.status === 'draft' && (
-                        <button className="btn-icon success" title="Mark Sent" onClick={() => onMarkSent(inv.id)}>
-                          <Icon name="check" size={14} />
-                        </button>
-                      )}
                       <button className="btn-icon danger" title="Delete" onClick={() => {
                         onDelete(inv.id)
                         if (activePreviewId === inv.id) setActivePreviewId(null)
@@ -109,6 +115,35 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
                   {inv.invoiceCode} · {fmtDate(inv.date)}
                 </div>
               </div>
+
+              <button className="card-items-toggle" onClick={() => toggleExpand(inv.id)}>
+                <span>{inv.items.length} item{inv.items.length !== 1 ? 's' : ''}</span>
+                <span className="toggle-chevron">{isExpanded(inv.id) ? '▲' : '▼'}</span>
+              </button>
+
+              {isExpanded(inv.id) && (
+                <div style={{ margin: '6px 0 4px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {inv.items.map(item => (
+                    <div key={item.productId} style={{
+                      display: 'grid', gridTemplateColumns: '32px 1fr auto',
+                      alignItems: 'center', columnGap: 8,
+                      fontSize: 13, color: 'var(--sub)', padding: '1px 0',
+                    }}>
+                      <span style={{ color: 'var(--text)', fontWeight: 700, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>×{item.qty}</span>
+                      <span>{item.name}</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{fmtMoney(item.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {inv.status === 'draft' && (
+                <button className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                  onClick={() => onMarkSent(inv.id)}>
+                  Mark as sent →
+                </button>
+              )}
             </div>
           )
         })

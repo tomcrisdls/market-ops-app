@@ -322,35 +322,28 @@ function BillingView({ invoices }) {
     byKiosk[inv.kioskId].push(inv)
   })
 
+  const prevMonth = () => {
+    if (month === 0) { setMonth(11); setYear(y => y - 1) }
+    else setMonth(m => m - 1)
+  }
+  const nextMonth = () => {
+    if (month === 11) { setMonth(0); setYear(y => y + 1) }
+    else setMonth(m => m + 1)
+  }
+  const isCurrentMonth = month === now.getMonth() && year === now.getFullYear()
+
   return (
     <>
-      <div className="card">
-        <div className="card-title">Filter Billing Period</div>
-        <div className="grid-2" style={{ marginBottom: 16 }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Month</label>
-            <select
-              className="form-select"
-              value={month}
-              onChange={e => setMonth(parseInt(e.target.value))}
-            >
-              {MONTHS.map((m, i) => (
-                <option key={m} value={i}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Year</label>
-            <input
-              type="number"
-              className="form-input"
-              value={year}
-              onChange={e => setYear(parseInt(e.target.value) || now.getFullYear())}
-            />
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button className="btn btn-sm btn-ghost" onClick={prevMonth} style={{ padding: '4px 10px', fontSize: 16, lineHeight: 1 }}>‹</button>
+          <span style={{ fontWeight: 700, fontSize: 15, minWidth: 120, textAlign: 'center' }}>
+            {MONTHS[month]} {year}
+          </span>
+          <button className="btn btn-sm btn-ghost" onClick={nextMonth} disabled={isCurrentMonth} style={{ padding: '4px 10px', fontSize: 16, lineHeight: 1, opacity: isCurrentMonth ? 0.3 : 1 }}>›</button>
         </div>
         {activeKiosks.length > 0 && (
-          <div className="filter-pills">
+          <div className="filter-pills" style={{ margin: 0 }}>
             <button
               className={`pill${resolvedKitchen === 'All Kitchens' ? ' active' : ''}`}
               onClick={() => setKitchen('All Kitchens')}

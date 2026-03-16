@@ -4,11 +4,11 @@ import { fmtDate, fmtMoney, calcTotals, findKiosk, findProduct } from '../../../
 import { DistributionSheet } from '../components/DistributionSheet'
 import { Icon } from '../../../components/icons/Icons'
 
-const DIST_FILTERS = ['all', 'needs invoice', 'no invoice', 'invoiced']
+const DIST_FILTERS = ['all', 'needs invoice', 'internal', 'invoiced']
 
 const PILL_COLORS = {
   'needs invoice': { bg: '#f97316', text: '#fff' },
-  'no invoice':    { bg: '#6b7280', text: '#fff' },
+  'internal':      { bg: '#6b7280', text: '#fff' },
   'invoiced':      { bg: '#16a34a', text: '#fff' },
 }
 
@@ -23,14 +23,14 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
 
   const classify = (d) => {
     if (d.status === 'invoiced') return 'invoiced'
-    if (findKiosk(d.kioskId, KIOSKS)?.noInvoice) return 'no invoice'
+    if (findKiosk(d.kioskId, KIOSKS)?.noInvoice) return 'internal'
     return 'needs invoice'
   }
 
   const counts = {
     all:             distributions.length,
     'needs invoice': distributions.filter(d => classify(d) === 'needs invoice').length,
-    'no invoice':    distributions.filter(d => classify(d) === 'no invoice').length,
+    'internal':      distributions.filter(d => classify(d) === 'internal').length,
     invoiced:        distributions.filter(d => classify(d) === 'invoiced').length,
   }
 
@@ -182,7 +182,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
                         <strong>{kioskLabel}</strong>
                         <span className={`badge badge-${isInvoiced ? 'invoiced' : 'distributed'}`}>
-                          {isInvoiced ? 'invoiced' : noInvoice ? 'no invoice' : 'pending invoice'}
+                          {isInvoiced ? 'invoiced' : noInvoice ? 'internal' : 'pending invoice'}
                         </span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -256,6 +256,14 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                   )}
 
                   {dist.notes && <div className="item-card-notes">{dist.notes}</div>}
+
+                  {needsInvoice && (
+                    <button className="btn btn-secondary"
+                      style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                      onClick={() => onGenerateInvoice(dist.id)}>
+                      Generate invoice →
+                    </button>
+                  )}
                 </div>
               )
             })}

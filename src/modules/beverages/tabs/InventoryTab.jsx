@@ -71,11 +71,15 @@ export function InventoryTab({ inventory, deliveries, distributions, onReceiveSt
                       />
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <button
+                          onClick={() => onAdjustStock(p.id, -adjustQtys[p.id])}
+                          style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 18, cursor: 'pointer', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        >−</button>
                         <input
                           type="number"
                           className="qty-input"
-                          style={{ width: 52 }}
+                          style={{ width: 44, textAlign: 'center' }}
                           value={adjustQtys[p.id]}
                           min="1"
                           onChange={e =>
@@ -83,17 +87,9 @@ export function InventoryTab({ inventory, deliveries, distributions, onReceiveSt
                           }
                         />
                         <button
-                          className="btn btn-sm btn-secondary"
                           onClick={() => onAdjustStock(p.id, adjustQtys[p.id])}
-                        >
-                          + Add
-                        </button>
-                        <button
-                          className="btn btn-sm btn-ghost"
-                          onClick={() => onAdjustStock(p.id, -adjustQtys[p.id])}
-                        >
-                          – Remove
-                        </button>
+                          style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg)', fontSize: 18, cursor: 'pointer', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        >+</button>
                       </div>
                     </td>
                   </tr>

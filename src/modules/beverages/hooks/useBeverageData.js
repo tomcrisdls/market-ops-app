@@ -118,9 +118,12 @@ export function useBeverageData() {
   const addDelivery = useCallback(async (date, vendor, items) => {
     const delivery = await db.insertDelivery({ date, vendor, items, notes: null })
     setDelivState(prev => [delivery, ...prev])
-    // Update inventory for each delivered item
-    for (const { productId, qty } of items) {
+    // Update inventory qty and price for each delivered item
+    for (const { productId, qty, unitPrice } of items) {
       await db.changeInventoryQty(productId, qty)
+      if (unitPrice && unitPrice > 0) {
+        await db.setInventoryPrice(productId, unitPrice)
+      }
     }
     // Refresh inventory state from DB to reflect all changes
     const inv = await db.getInventory()

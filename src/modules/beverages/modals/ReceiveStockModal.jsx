@@ -96,7 +96,7 @@ function ManualTab({ onSave, onClose }) {
   )
 }
 
-function UploadTab({ onSave, onClose }) {
+function UploadTab({ onSave, onClose, inventory }) {
   const [date,    setDate]    = useState(today())
   const [vendor,  setVendor]  = useState(VENDORS[0])
   const [parsing, setParsing] = useState(false)
@@ -174,7 +174,11 @@ Rules:
   const handleConfirm = () => {
     const items = rows
       .filter(r => r.productId && parseInt(r.qty) > 0)
-      .map(r => ({ productId: r.productId, qty: parseInt(r.qty) }))
+      .map(r => ({
+        productId: r.productId,
+        qty: parseInt(r.qty),
+        unitPrice: parseFloat(r.unitPrice) > 0 ? parseFloat(r.unitPrice) : undefined,
+      }))
     if (items.length === 0) { setError('Match at least one item to a product before confirming.'); return }
     setError(null)
     onSave(date, vendor, items)
@@ -226,12 +230,16 @@ Rules:
               <tr>
                 <th>Invoice Line</th>
                 <th>Qty</th>
+                <th>Unit Price</th>
                 <th>Match to Product</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row, i) => {
                 const unmatched = !row.productId
+                const currentPrice = row.productId ? inventory?.[row.productId]?.price : null
+                const newPrice = parseFloat(row.unitPrice)
+                const priceChanged = currentPrice && newPrice > 0 && Math.abs(newPrice - currentPrice) > 0.001
                 return (
                   <tr key={i} style={unmatched ? { background: '#fffbeb' } : undefined}>
                     <td style={{ fontSize: 12 }}>
@@ -250,6 +258,22 @@ Rules:
                         min="0"
                         onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, qty: e.target.value } : r))}
                       />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="qty-input"
+                        style={{ width: 72, borderColor: priceChanged ? '#f59e0b' : undefined }}
+                        value={row.unitPrice ?? ''}
+                        min="0"
+                        step="0.01"
+                        onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, unitPrice: e.target.value } : r))}
+                      />
+                      {priceChanged && (
+                        <div style={{ fontSize: 10, color: '#b45309', marginTop: 2, whiteSpace: 'nowrap' }}>
+                          was {fmtMoney(currentPrice)}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <select
@@ -315,7 +339,7 @@ export function ReceiveStockModal({ isOpen, onClose, inventory, onSave }) {
         </div>
 
         {tab === 'upload'
-          ? <UploadTab onSave={onSave} onClose={handleClose} />
+          ? <UploadTab onSave={onSave} onClose={handleClose} inventory={inventory} />
           : <ManualTab onSave={onSave} onClose={handleClose} />
         }
       </div>
