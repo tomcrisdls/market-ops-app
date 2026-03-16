@@ -9,6 +9,7 @@ import { supabase } from '../../../lib/supabase'
  */
 export function useBeverageData() {
   const [loading,       setLoading]      = useState(true)
+  const [loadError,     setLoadError]    = useState(null)
   const [inventory,     setInvState]     = useState({})
   const [orders,        setOrdersState]  = useState([])
   const [deliveries,    setDelivState]   = useState([])
@@ -40,7 +41,7 @@ export function useBeverageData() {
         setInvoicesState(invs)
       } catch (err) {
         console.error('Failed to load data:', err?.message || err?.code || JSON.stringify(err))
-        alert('Failed to connect to database: ' + (err?.message || err?.code || 'unknown error'))
+        setLoadError('Failed to connect. Check your connection and reload.')
       } finally {
         setLoading(false)
       }
@@ -227,6 +228,7 @@ export function useBeverageData() {
 
   return {
     loading,
+    loadError,
     inventory,
     orders,
     deliveries,

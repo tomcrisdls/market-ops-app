@@ -48,6 +48,15 @@ export function BeverageModule() {
     return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--gray)' }}>Loading…</div>
   }
 
+  if (data.loadError) {
+    return (
+      <div style={{ padding: '48px', textAlign: 'center' }}>
+        <div style={{ fontSize: 15, color: '#dc2626', marginBottom: 12 }}>{data.loadError}</div>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>Reload</button>
+      </div>
+    )
+  }
+
   const todayStr = today()
 
   // ── Shared computations ────────────────────────────────
