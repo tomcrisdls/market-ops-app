@@ -79,10 +79,13 @@ export function BeverageModule() {
           const diff = Math.round((new Date(o.date + 'T00:00:00').getTime() - activeMs) / 86400000)
           return diff > 0 && diff <= 3 && o.status === 'pending'
         })
+        const pendingValue = dayOrders
+          .filter(o => o.status === 'pending')
+          .reduce((sum, o) => sum + calcTotals(o.items, data.inventory).total, 0)
         const stats = [
-          { label: 'Orders',  value: dayOrders.length },
-          { label: 'Pending', value: pending },
-          { label: 'Cases',   value: cases },
+          { label: 'Orders',        value: dayOrders.length },
+          { label: 'Pending',       value: pending },
+          { label: 'Pending Value', value: fmtMoney(pendingValue) },
         ]
         if (upcoming.length > 0) {
           const nextDate = upcoming.reduce((min, o) => o.date < min ? o.date : min, upcoming[0].date)
@@ -187,7 +190,6 @@ export function BeverageModule() {
   const handleDeliverRemaining = (order) => {
     const linked = data.distributions.find(d => d.orderId === order.id)
     if (!linked) return
-    const ordered = Object.fromEntries(order.items.map(i => [i.productId, i.qty]))
     const remaining = order.items
       .map(i => {
         const distQty = linked.items.find(di => di.productId === i.productId)?.qty ?? 0
@@ -195,7 +197,11 @@ export function BeverageModule() {
       })
       .filter(i => i.qty > 0)
     if (remaining.length === 0) return
-    setPreDistItems({ kioskId: order.kioskId, items: remaining })
+    // Default to tomorrow — that's almost always when remaining stock arrives
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10)
+    setPreDistItems({ kioskId: order.kioskId, items: remaining, defaultDate: tomorrowStr })
     setDistModalOpen(true)
   }
 
@@ -459,7 +465,7 @@ export function BeverageModule() {
         orders={data.orders}
         preOrderId={preOrderId}
         preItems={preDistItems}
-        defaultDate={activeDate}
+        defaultDate={preDistItems?.defaultDate ?? activeDate}
         onSave={data.addDistribution}
       />
 

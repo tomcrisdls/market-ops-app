@@ -3,43 +3,43 @@ import { KIOSKS } from '../../../lib/constants'
 import { fmtMoney, calcTotals, findKiosk, findProduct, today, fmtDate } from '../../../lib/utils'
 import { Icon } from '../../../components/icons/Icons'
 
-function PipelineStepper({ status }) {
+function PipelineStepper({ status, isPartial }) {
   const steps = [
-    { id: 'pending',     label: 'Ordered',      color: '#f97316' },
-    { id: 'distributed', label: 'Distributed',  color: '#3b82f6' },
-    { id: 'invoiced',    label: 'Invoiced',      color: '#16a34a' },
+    { id: 'pending',     label: 'Ordered',     color: '#f97316' },
+    { id: 'distributed', label: 'Distributed', color: isPartial ? '#f97316' : '#3b82f6' },
+    { id: 'invoiced',    label: 'Invoiced',    color: '#16a34a' },
   ]
   const idx = status === 'pending' ? 0 : status === 'distributed' ? 1 : 2
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginTop: 14, padding: '0 2px' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginTop: 16, padding: '0 2px' }}>
       {steps.map((step, i) => (
         <Fragment key={step.id}>
           {i > 0 && (
             <div style={{
               flex: 1,
               height: 2,
-              marginTop: 4,
-              background: i <= idx ? '#16a34a' : 'var(--border)',
+              marginTop: 6,
+              background: i <= idx ? (i === 1 && isPartial ? '#fed7aa' : '#16a34a') : 'var(--border)',
               borderRadius: 1,
             }} />
           )}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
             <div style={{
-              width: i === idx ? 10 : 8,
-              height: i === idx ? 10 : 8,
+              width: i === idx ? 12 : 9,
+              height: i === idx ? 12 : 9,
               borderRadius: '50%',
               background: i < idx ? '#16a34a' : i === idx ? step.color : 'var(--border)',
-              boxShadow: i === idx ? `0 0 0 3px ${step.color}22` : 'none',
+              boxShadow: i === idx ? `0 0 0 3px ${step.color}28` : 'none',
               flexShrink: 0,
             }} />
             <span style={{
               fontSize: 10,
-              color: i === idx ? 'var(--text)' : i < idx ? '#16a34a' : 'var(--sub-light)',
-              fontWeight: i === idx ? 600 : 400,
+              color: i === idx ? 'var(--text)' : i < idx ? 'var(--sub)' : 'var(--sub-light)',
+              fontWeight: i === idx ? 700 : 400,
               whiteSpace: 'nowrap',
-              letterSpacing: '0.01em',
+              letterSpacing: '0.02em',
             }}>
-              {step.label}
+              {step.label}{i === 1 && isPartial ? ' (partial)' : ''}
             </span>
           </div>
         </Fragment>
@@ -167,6 +167,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                 const diffs        = order.status !== 'pending' ? buildAuditDiff(order, distributions) : null
                 const hasRemaining = diffs && diffs.some(d => d.ordered > d.distributed)
                 const borderColor = order.status === 'invoiced'    ? '#16a34a'
+                                  : hasRemaining                   ? '#f97316'
                                   : order.status === 'distributed' ? '#3b82f6'
                                   : '#f97316'
                 const isFuture = order.date > todayStr
@@ -192,7 +193,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                           )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                          <span className="item-card-amount">{fmtMoney(totals.total)}</span>
+                          <span style={{ fontSize: 13, color: 'var(--sub)', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(totals.total)}</span>
                           <div style={{ display: 'flex', gap: 3 }}>
                             {order.status === 'pending' && (
                               <>
@@ -215,12 +216,22 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                           </div>
                         </div>
                       </div>
-                      {diffs && (
-                        <div style={{ fontSize: 11, color: '#c2410c', marginTop: 2 }}>
-                          {diffs.map(d => {
+                      {hasRemaining && (
+                        <div style={{
+                          marginTop: 6,
+                          background: '#fff7ed',
+                          border: '1px solid #fed7aa',
+                          borderRadius: 6,
+                          padding: '6px 10px',
+                          fontSize: 12,
+                          color: '#92400e',
+                          lineHeight: 1.5,
+                        }}>
+                          <span style={{ fontWeight: 600, color: '#c2410c' }}>Still owed: </span>
+                          {diffs.filter(d => d.ordered > d.distributed).map(d => {
                             const name = findProduct(d.productId)?.name ?? d.productId
-                            return `${name}: ordered ${d.ordered} · distributed ${d.distributed}`
-                          }).join(' · ')}
+                            return `${name} ×${d.ordered - d.distributed}`
+                          }).join(', ')}
                         </div>
                       )}
                     </div>
@@ -253,7 +264,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                     {order.notes && <div className="item-card-notes">{order.notes}</div>}
 
                     {/* Pipeline stepper */}
-                    <PipelineStepper status={order.status} />
+                    <PipelineStepper status={order.status} isPartial={hasRemaining} />
 
                     {/* Next-step CTA */}
                     {order.status === 'pending' && (
@@ -265,7 +276,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                         Distribute now →
                       </button>
                     )}
-                    {order.status === 'distributed' && (
+                    {order.status === 'distributed' && !hasRemaining && (
                       <button
                         className="btn btn-secondary"
                         style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
@@ -277,7 +288,7 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                     {hasRemaining && (
                       <button
                         className="btn btn-secondary"
-                        style={{ width: '100%', justifyContent: 'center', marginTop: 6, fontSize: 13, color: '#c2410c', borderColor: '#fed7aa' }}
+                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13, color: '#c2410c', borderColor: '#fed7aa', background: '#fff7ed' }}
                         onClick={() => onDeliverRemaining(order)}
                       >
                         Deliver remaining →
