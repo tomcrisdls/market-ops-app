@@ -224,31 +224,41 @@ Rules:
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
-                <tr key={i}>
-                  <td style={{ fontSize: 12 }}>{row.name}</td>
-                  <td>
-                    <input
-                      type="number"
-                      className="qty-input"
-                      value={row.qty}
-                      min="0"
-                      onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, qty: e.target.value } : r))}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      className="form-select"
-                      style={{ fontSize: 12, padding: '4px 6px' }}
-                      value={row.productId}
-                      onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, productId: e.target.value } : r))}
-                    >
-                      <option value="">— Skip —</option>
-                      {PRODUCTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((row, i) => {
+                const unmatched = !row.productId
+                return (
+                  <tr key={i} style={unmatched ? { background: '#fffbeb' } : undefined}>
+                    <td style={{ fontSize: 12 }}>
+                      {row.name}
+                      {unmatched && (
+                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>
+                          ⚠ Not in catalog — match manually or skip
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="qty-input"
+                        value={row.qty}
+                        min="0"
+                        onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, qty: e.target.value } : r))}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        className="form-select"
+                        style={{ fontSize: 12, padding: '4px 6px', borderColor: unmatched ? '#fbbf24' : undefined }}
+                        value={row.productId}
+                        onChange={e => setRows(prev => prev.map((r, j) => j === i ? { ...r, productId: e.target.value } : r))}
+                      >
+                        <option value="">— Skip —</option>
+                        {PRODUCTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           <div style={{ fontSize: 11, color: 'var(--sub)', marginBottom: 4 }}>
