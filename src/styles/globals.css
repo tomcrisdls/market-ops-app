@@ -807,68 +807,9 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #b0b0b5; }
 
 /* ── PRINT ── */
-@page {
-  size: letter;
-  margin: 0.5in 0.65in;
-}
-
-@media print {
-  /* Force all background colors / images to print (dark header, zebra rows) */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Hide everything except the invoice */
-  body * { visibility: hidden !important; }
-  #invoice-print-area,
-  #invoice-print-area * { visibility: visible !important; }
-
-  /* Absolute (not fixed) — fixed repeats on every page */
-  #invoice-print-area {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Stripped invoice shell */
-  .official-invoice {
-    box-shadow: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    font-size: 11px !important;
-  }
-
-  /* Compact logo */
-  .oi-logo-wrap {
-    width: 72px !important;
-    height: 72px !important;
-  }
-  .oi-logo-img {
-    width: 72px !important;
-    height: 72px !important;
-  }
-
-  /* Compact header */
-  .oi-header { margin-bottom: 10px !important; gap: 20px !important; }
-  .oi-title-word { font-size: 26px !important; margin-bottom: 8px !important; letter-spacing: 5px !important; }
-
-  /* Compact address */
-  .oi-address { margin-bottom: 14px !important; line-height: 1.5 !important; font-size: 11px !important; }
-
-  /* Compact table */
-  .oi-table th { padding: 6px 10px !important; }
-  .oi-table td { padding: 7px 10px !important; }
-
-  /* Compact bottom */
-  .oi-bottom { margin-top: 14px !important; }
-  .oi-totals .t-total td { padding: 7px 10px !important; }
-}
+/* Invoice printing is handled via a dedicated popup window (handlePrint in InvoicesTab).
+   This @page rule is a fallback for any direct window.print() calls. */
+@page { size: letter; margin: 0.5in 0.65in; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {
