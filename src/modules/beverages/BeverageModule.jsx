@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useBeverageData } from './hooks/useBeverageData'
 import { OrdersTab }       from './tabs/OrdersTab'
 import { InventoryTab }    from './tabs/InventoryTab'
@@ -50,16 +50,76 @@ export function BeverageModule() {
 
   const todayStr = today()
 
-  // ── Stats bar computations ─────────────────────────────
+  // ── Shared computations ────────────────────────────────
   const pendingTodayOrders  = data.orders.filter(o => o.status === 'pending' && o.date === todayStr)
-  const distsPendingInvoice = data.distributions.filter(d => {
-    if (d.status === 'invoiced') return false
-    const k = findKiosk(d.kioskId, KIOSKS)
-    return !k?.noInvoice
-  })
-  const invoicesTodayTotal = data.invoices
-    .filter(i => i.date === todayStr)
-    .reduce((sum, i) => sum + i.total, 0)
+
+  // ── Contextual stats per tab ───────────────────────────
+  const tabStats = (() => {
+    switch (activeTab) {
+      case 'orders': {
+        const pending = dayOrders.filter(o => o.status === 'pending').length
+        const cases   = dayOrders.reduce((sum, o) => sum + (o.items || []).reduce((s, i) => s + i.qty, 0), 0)
+        return [
+          { label: 'Orders',  value: dayOrders.length },
+          { label: 'Pending', value: pending },
+          { label: 'Cases',   value: cases },
+        ]
+      }
+      case 'distribution': {
+        const kitchens = new Set(dayDists.map(d => d.kioskId)).size
+        const cases    = dayDists.reduce((sum, d) => sum + (d.items || []).reduce((s, i) => s + i.qty, 0), 0)
+        const needInv  = dayDists.filter(d => {
+          if (d.status === 'invoiced') return false
+          const k = findKiosk(d.kioskId, KIOSKS)
+          return !k?.noInvoice
+        }).length
+        return [
+          { label: 'Kitchens Served', value: kitchens },
+          { label: 'Cases Out',       value: cases },
+          { label: 'Pending Invoice', value: needInv, onClick: needInv > 0 ? () => setActiveTab('invoices') : undefined },
+        ]
+      }
+      case 'invoices': {
+        const drafts = dayInvoices.filter(i => i.status === 'draft').length
+        const sent   = dayInvoices.filter(i => i.status === 'sent').length
+        const total  = dayInvoices.reduce((sum, i) => sum + i.total, 0)
+        return [
+          { label: 'Drafts', value: drafts },
+          { label: 'Sent',   value: sent },
+          { label: 'Total',  value: total > 0 ? fmtMoney(total) : '—' },
+        ]
+      }
+      case 'tracker': {
+        const now  = new Date()
+        const days = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(now)
+          d.setDate(d.getDate() - i)
+          return d.toISOString().split('T')[0]
+        })
+        const weekDists   = data.distributions.filter(d => days.includes(d.date))
+        const weekCases   = weekDists.reduce((sum, d) => sum + (d.items || []).reduce((s, i) => s + i.qty, 0), 0)
+        const weekRevenue = data.invoices
+          .filter(i => days.includes(i.date) && i.status === 'sent')
+          .reduce((sum, i) => sum + i.total, 0)
+        return [
+          { label: 'Distributions (7d)', value: weekDists.length },
+          { label: 'Cases Out (7d)',     value: weekCases },
+          { label: 'Invoiced (7d)',      value: weekRevenue > 0 ? fmtMoney(weekRevenue) : '—' },
+        ]
+      }
+      case 'inventory': {
+        const inv      = Object.values(data.inventory)
+        const outCount = inv.filter(i => i.qty === 0).length
+        const cases    = inv.reduce((sum, i) => sum + (i.qty || 0), 0)
+        return [
+          { label: 'Products',     value: inv.length },
+          { label: 'Out of Stock', value: outCount },
+          { label: 'Cases in Cage', value: cases },
+        ]
+      }
+      default: return []
+    }
+  })()
 
   // ── Date-filtered slices for tabs ─────────────────────
   const dayOrders   = data.orders.filter(o => o.date === activeDate)
@@ -206,22 +266,21 @@ export function BeverageModule() {
       {/* Vendor deadline banner */}
       <VendorDeadlineBanner />
 
-      {/* Stats bar */}
+      {/* Stats bar — contextual per tab */}
       <div className="stats-bar">
-        <div className="stat-item">
-          <span className="stat-value">{pendingTodayOrders.length}</span>
-          <span className="stat-label">Pending Today</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value">{distsPendingInvoice.length}</span>
-          <span className="stat-label">Pending Invoice</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value">{invoicesTodayTotal > 0 ? fmtMoney(invoicesTodayTotal) : '—'}</span>
-          <span className="stat-label">Invoiced Today</span>
-        </div>
+        {tabStats.map((stat, i) => (
+          <Fragment key={stat.label}>
+            {i > 0 && <div className="stat-divider" />}
+            <div
+              className="stat-item"
+              onClick={stat.onClick}
+              style={stat.onClick ? { cursor: 'pointer' } : undefined}
+            >
+              <span className="stat-value">{stat.value}</span>
+              <span className="stat-label">{stat.label}</span>
+            </div>
+          </Fragment>
+        ))}
       </div>
 
       {/* Sidebar + main layout */}
