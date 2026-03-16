@@ -1,52 +1,8 @@
-import { useState, Fragment } from 'react'
+import { useState } from 'react'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtMoney, calcTotals, findKiosk, findProduct, today, fmtDate } from '../../../lib/utils'
 import { Icon } from '../../../components/icons/Icons'
 
-function PipelineStepper({ status, isPartial }) {
-  const steps = [
-    { id: 'pending',     label: 'Ordered',     color: '#f97316' },
-    { id: 'distributed', label: 'Distributed', color: isPartial ? '#f97316' : '#3b82f6' },
-    { id: 'invoiced',    label: 'Invoiced',    color: '#16a34a' },
-  ]
-  const idx = status === 'pending' ? 0 : status === 'distributed' ? 1 : 2
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginTop: 16, padding: '0 2px' }}>
-      {steps.map((step, i) => (
-        <Fragment key={step.id}>
-          {i > 0 && (
-            <div style={{
-              flex: 1,
-              height: 2,
-              marginTop: 6,
-              background: i <= idx ? (i === 1 && isPartial ? '#fed7aa' : '#16a34a') : 'var(--border)',
-              borderRadius: 1,
-            }} />
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-            <div style={{
-              width: i === idx ? 12 : 9,
-              height: i === idx ? 12 : 9,
-              borderRadius: '50%',
-              background: i < idx ? '#16a34a' : i === idx ? step.color : 'var(--border)',
-              boxShadow: i === idx ? `0 0 0 3px ${step.color}28` : 'none',
-              flexShrink: 0,
-            }} />
-            <span style={{
-              fontSize: 10,
-              color: i === idx ? 'var(--text)' : i < idx ? 'var(--sub)' : 'var(--sub-light)',
-              fontWeight: i === idx ? 700 : 400,
-              whiteSpace: 'nowrap',
-              letterSpacing: '0.02em',
-            }}>
-              {step.label}{i === 1 && isPartial ? ' (partial)' : ''}
-            </span>
-          </div>
-        </Fragment>
-      ))}
-    </div>
-  )
-}
 
 const STATUS_FILTERS = ['all', 'pending', 'distributed', 'invoiced']
 
@@ -179,8 +135,10 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                       <div className="item-card-name">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
                           <strong>{kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : order.kioskId}</strong>
-                          <span className={`badge badge-${order.status}`}>{order.status}</span>
-                          {diffs && <span className="badge badge-warn">partial</span>}
+                          {hasRemaining
+                            ? <span className="badge badge-warn">partial</span>
+                            : <span className={`badge badge-${order.status}`}>{order.status}</span>
+                          }
                           {isFuture && (
                             <span style={{ fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
                               📅 {fmtDate(order.date)}
@@ -217,18 +175,8 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                         </div>
                       </div>
                       {hasRemaining && (
-                        <div style={{
-                          marginTop: 6,
-                          background: '#fff7ed',
-                          border: '1px solid #fed7aa',
-                          borderRadius: 6,
-                          padding: '6px 10px',
-                          fontSize: 12,
-                          color: '#92400e',
-                          lineHeight: 1.5,
-                        }}>
-                          <span style={{ fontWeight: 600, color: '#c2410c' }}>Still owed: </span>
-                          {diffs.filter(d => d.ordered > d.distributed).map(d => {
+                        <div style={{ marginTop: 4, fontSize: 12, color: '#c2410c' }}>
+                          Still owed: {diffs.filter(d => d.ordered > d.distributed).map(d => {
                             const name = findProduct(d.productId)?.name ?? d.productId
                             return `${name} ×${d.ordered - d.distributed}`
                           }).join(', ')}
@@ -262,9 +210,6 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
                     )}
 
                     {order.notes && <div className="item-card-notes">{order.notes}</div>}
-
-                    {/* Pipeline stepper */}
-                    <PipelineStepper status={order.status} isPartial={hasRemaining} />
 
                     {/* Next-step CTA */}
                     {order.status === 'pending' && (

@@ -79,13 +79,9 @@ export function BeverageModule() {
           const diff = Math.round((new Date(o.date + 'T00:00:00').getTime() - activeMs) / 86400000)
           return diff > 0 && diff <= 3 && o.status === 'pending'
         })
-        const pendingValue = dayOrders
-          .filter(o => o.status === 'pending')
-          .reduce((sum, o) => sum + calcTotals(o.items, data.inventory).total, 0)
         const stats = [
-          { label: 'Orders',        value: dayOrders.length },
-          { label: 'Pending',       value: pending },
-          { label: 'Pending Value', value: fmtMoney(pendingValue) },
+          { label: 'Orders',  value: dayOrders.length },
+          { label: 'Pending', value: pending },
         ]
         if (upcoming.length > 0) {
           const nextDate = upcoming.reduce((min, o) => o.date < min ? o.date : min, upcoming[0].date)
