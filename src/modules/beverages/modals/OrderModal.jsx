@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { KIOSKS, PRODUCTS } from '../../../lib/constants'
-import { today } from '../../../lib/utils'
+import { today, fmtDate } from '../../../lib/utils'
 
 export function OrderModal({ isOpen, onClose, inventory, onSave }) {
   const [kioskId, setKioskId] = useState(KIOSKS[0].id)
@@ -28,6 +28,7 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
   }
 
   const selectedCount = PRODUCTS.filter(p => (qtys[p.id] || 0) > 0).length
+  const isFutureDate  = date > today()
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -57,6 +58,18 @@ export function OrderModal({ isOpen, onClose, inventory, onSave }) {
             />
           </div>
         </div>
+
+        {/* Future date callout */}
+        {isFutureDate && (
+          <div style={{
+            background: '#fffbeb', border: '1px solid #fbbf24',
+            borderRadius: 8, padding: '8px 12px', marginBottom: 16,
+            fontSize: 13, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span>📅</span>
+            <span>Scheduled for <strong>{fmtDate(date)}</strong> — will appear when you open that date</span>
+          </div>
+        )}
 
         {/* Items header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>

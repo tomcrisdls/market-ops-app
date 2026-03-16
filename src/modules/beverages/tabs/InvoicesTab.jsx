@@ -52,12 +52,19 @@ export function InvoicesTab({ invoices, onGenerateInvoice, onMarkSent, onDelete,
         <div className="empty-state">
           <div className="empty-icon-wrap"><Icon name="receipt" size={36} /></div>
           <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>No invoices for this day</p>
-          <p style={{ fontSize: 12, marginBottom: 16 }}>Generate an invoice from a completed distribution</p>
-          {onGoToDistribution && (
-            <button className="btn btn-secondary" onClick={onGoToDistribution}>
-              Go to Distribution
+          <p style={{ fontSize: 12, color: 'var(--sub-light)', marginBottom: 16 }}>
+            Distributions must be recorded first, then you can generate invoices here
+          </p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={() => onGenerateInvoice(null)}>
+              + Generate Invoice
             </button>
-          )}
+            {onGoToDistribution && (
+              <button className="btn btn-ghost" onClick={onGoToDistribution}>
+                View Distributions
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         invoices.map(inv => {

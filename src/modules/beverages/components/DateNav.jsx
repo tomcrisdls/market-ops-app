@@ -13,9 +13,22 @@ function fmtNavDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
+function getRelativeLabel(dateStr, todayStr) {
+  const diff = Math.round(
+    (new Date(dateStr + 'T00:00:00') - new Date(todayStr + 'T00:00:00')) / 86400000
+  )
+  if (diff === 1) return 'Tomorrow'
+  if (diff === -1) return 'Yesterday'
+  if (diff > 1)  return `${diff} days ahead`
+  return null
+}
+
 export function DateNav({ date, onChange }) {
   const todayStr  = today()
+  const maxDate   = shiftDate(todayStr, 7)
   const isToday   = date === todayStr
+  const isFuture  = date > todayStr
+  const relLabel  = getRelativeLabel(date, todayStr)
   const pickerRef = useRef(null)
 
   return (
@@ -28,11 +41,24 @@ export function DateNav({ date, onChange }) {
         <Icon name="chevron-left" size={16} />
       </button>
 
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        {relLabel && (
+          <span style={{
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            color: isFuture ? '#2563eb' : 'var(--sub)',
+            lineHeight: 1,
+          }}>
+            {relLabel}
+          </span>
+        )}
         <button
           className="date-nav-label"
           onClick={() => pickerRef.current?.showPicker()}
           title="Pick a date"
+          style={isFuture ? { color: '#2563eb' } : undefined}
         >
           {fmtNavDate(date)}
         </button>
@@ -40,7 +66,7 @@ export function DateNav({ date, onChange }) {
           ref={pickerRef}
           type="date"
           value={date}
-          max={todayStr}
+          max={maxDate}
           onChange={e => e.target.value && onChange(e.target.value)}
           style={{
             position: 'absolute',
@@ -57,7 +83,7 @@ export function DateNav({ date, onChange }) {
       <button
         className="date-nav-arrow"
         onClick={() => onChange(shiftDate(date, 1))}
-        disabled={isToday}
+        disabled={date >= maxDate}
         title="Next day"
       >
         <Icon name="chevron-right" size={16} />

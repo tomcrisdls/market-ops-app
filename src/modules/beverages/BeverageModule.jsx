@@ -62,13 +62,29 @@ export function BeverageModule() {
   const tabStats = (() => {
     switch (activeTab) {
       case 'orders': {
-        const pending = dayOrders.filter(o => o.status === 'pending').length
-        const cases   = dayOrders.reduce((sum, o) => sum + (o.items || []).reduce((s, i) => s + i.qty, 0), 0)
-        return [
+        const pending  = dayOrders.filter(o => o.status === 'pending').length
+        const cases    = dayOrders.reduce((sum, o) => sum + (o.items || []).reduce((s, i) => s + i.qty, 0), 0)
+        const activeMs = new Date(activeDate + 'T00:00:00').getTime()
+        const upcoming = data.orders.filter(o => {
+          const diff = Math.round((new Date(o.date + 'T00:00:00').getTime() - activeMs) / 86400000)
+          return diff > 0 && diff <= 3 && o.status === 'pending'
+        })
+        const stats = [
           { label: 'Orders',  value: dayOrders.length },
           { label: 'Pending', value: pending },
           { label: 'Cases',   value: cases },
         ]
+        if (upcoming.length > 0) {
+          const nextDate = upcoming.reduce((min, o) => o.date < min ? o.date : min, upcoming[0].date)
+          const daysAway = Math.round((new Date(nextDate + 'T00:00:00').getTime() - activeMs) / 86400000)
+          const label = daysAway === 1 ? 'Due Tomorrow' : `Due in ${daysAway}d`
+          stats.push({ label, value: upcoming.length, onClick: () => {
+            const d = new Date(activeDate + 'T00:00:00')
+            d.setDate(d.getDate() + daysAway)
+            setActiveDate(d.toISOString().slice(0, 10))
+          }})
+        }
+        return stats
       }
       case 'distribution': {
         const kitchens = new Set(dayDists.map(d => d.kioskId)).size
