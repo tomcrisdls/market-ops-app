@@ -81,9 +81,20 @@ function buildAuditDiff(order, distributions) {
 
 export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDistribute, onInvoice, onDelete, onEdit, onDeliverRemaining, activeDate }) {
   const todayStr = today()
+  // Partial = distributed but quantities don't match order
+  const isPartial = (order) => {
+    if (order.status !== 'distributed') return false
+    const linked = distributions.find(d => d.orderId === order.id)
+    if (!linked) return false
+    return order.items.some(i => {
+      const distQty = linked.items.find(di => di.productId === i.productId)?.qty ?? 0
+      return distQty < i.qty
+    })
+  }
+
   const counts = {
     all:         orders.length,
-    pending:     orders.filter(o => o.status === 'pending').length,
+    pending:     orders.filter(o => o.status === 'pending' || isPartial(o)).length,
     distributed: orders.filter(o => o.status === 'distributed').length,
     invoiced:    orders.filter(o => o.status === 'invoiced').length,
   }
@@ -94,7 +105,11 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
   const isExpanded   = (id) => expanded[id] === true   // default: collapsed
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }))
 
-  const visible = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  const visible = filter === 'all'
+    ? orders
+    : filter === 'pending'
+      ? orders.filter(o => o.status === 'pending' || isPartial(o))
+      : orders.filter(o => o.status === filter)
 
   const dateGroups = []
   const seen = {}
