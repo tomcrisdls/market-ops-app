@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user,              setUser]              = useState(null)
+  const [profile,           setProfile]           = useState(null)
+  const [loading,           setLoading]           = useState(true)
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -15,7 +16,18 @@ export function AuthProvider({ children }) {
       else setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Detect invite link click — user is signed in but needs to set a password
+      if (event === 'SIGNED_IN') {
+        const hash   = window.location.hash
+        const params = new URLSearchParams(hash.replace('#', '?'))
+        if (params.get('type') === 'invite') {
+          setNeedsPasswordSetup(true)
+          // Clear the hash so it doesn't persist on refresh
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+      }
+
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else { setProfile(null); setLoading(false) }
@@ -43,8 +55,14 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  async function updatePassword(password) {
+    const { error } = await supabase.auth.updateUser({ password })
+    if (!error) setNeedsPasswordSetup(false)
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, needsPasswordSetup, signIn, signOut, updatePassword }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { Header }         from './components/layout/Header'
-import { LoginPage }      from './components/auth/LoginPage'
-import { BeverageModule } from './modules/beverages/BeverageModule'
+import { Header }          from './components/layout/Header'
+import { LoginPage }       from './components/auth/LoginPage'
+import { SetPasswordPage } from './components/auth/SetPasswordPage'
+import { BeverageModule }  from './modules/beverages/BeverageModule'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768)
@@ -40,7 +41,7 @@ function MobileBlock() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, needsPasswordSetup } = useAuth()
   const isDesktop = useIsDesktop()
 
   if (!isDesktop) return <MobileBlock />
@@ -59,6 +60,7 @@ function AppContent() {
   )
 
   if (!user) return <LoginPage />
+  if (needsPasswordSetup) return <SetPasswordPage />
 
   return (
     <>
