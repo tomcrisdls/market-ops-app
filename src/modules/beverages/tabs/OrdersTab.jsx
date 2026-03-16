@@ -113,139 +113,166 @@ export function OrdersTab({ orders, distributions, inventory, onNewOrder, onDist
           <div className="empty-icon-wrap"><Icon name="inbox" size={36} /></div>
           <p>No orders{filter !== 'all' ? ` with status "${filter}"` : ' for this date'}</p>
         </div>
-      ) : (
-        dateGroups.map(({ date, items: group }) => (
-          <div key={date}>
-            <div className="card-grid">
-              {group.map(order => {
-                const kiosk        = findKiosk(order.kioskId, KIOSKS)
-                const totals       = calcTotals(order.items, inventory)
-                const diffs        = order.status !== 'pending' ? buildAuditDiff(order, distributions) : null
-                const hasRemaining = diffs && diffs.some(d => d.ordered > d.distributed)
-                const borderColor = order.status === 'invoiced'    ? '#16a34a'
-                                  : hasRemaining                   ? '#f97316'
-                                  : order.status === 'distributed' ? '#3b82f6'
-                                  : '#f97316'
-                const isFuture = order.date > todayStr
-                const isPast   = order.date < todayStr
-                return (
-                  <div className="card" key={order.id} style={{ borderLeft: `3px solid ${borderColor}` }}>
-                    {/* Header */}
-                    <div className="item-card-header">
-                      <div className="item-card-name">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
-                          <strong>{kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : order.kioskId}</strong>
-                          {hasRemaining
-                            ? <span className="badge badge-warn">partial</span>
-                            : <span className={`badge badge-${order.status}`}>{order.status}</span>
-                          }
-                          {isFuture && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              📅 {fmtDate(order.date)}
-                            </span>
-                          )}
-                          {isPast && order.date !== todayStr && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e', background: '#fffbeb', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              {fmtDate(order.date)}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                          <span style={{ fontSize: 13, color: 'var(--sub)', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(totals.total)}</span>
-                          <div style={{ display: 'flex', gap: 3 }}>
-                            {order.status === 'pending' && (
-                              <>
-                                <button className="btn-icon primary" title="Edit" onClick={() => onEdit(order.id)}>
-                                  <Icon name="pencil" size={14} />
-                                </button>
-                                <button className="btn-icon success" title="Distribute" onClick={() => onDistribute(order.id)}>
-                                  <Icon name="truck" size={14} />
-                                </button>
-                              </>
-                            )}
-                            {order.status === 'distributed' && (
-                              <button className="btn-icon success" title="Generate Invoice" onClick={() => onInvoice(order.id)}>
-                                <Icon name="receipt" size={14} />
-                              </button>
-                            )}
-                            <button className="btn-icon danger" title="Delete" onClick={() => onDelete(order.id)}>
-                              <Icon name="trash" size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      {hasRemaining && (
-                        <div style={{ marginTop: 4, fontSize: 12, color: '#c2410c' }}>
-                          Still owed: {diffs.filter(d => d.ordered > d.distributed).map(d => {
-                            const name = findProduct(d.productId)?.name ?? d.productId
-                            return `${name} ×${d.ordered - d.distributed}`
-                          }).join(', ')}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Items toggle */}
-                    <button className="card-items-toggle" onClick={() => toggleExpand(order.id)}>
-                      <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
-                      <span className="toggle-chevron">{isExpanded(order.id) ? '▲' : '▼'}</span>
-                    </button>
-
-                    {/* Item rows */}
-                    {isExpanded(order.id) && (
-                      <div style={{ margin: '6px 0 4px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        {order.items.map(item => {
-                          const product = findProduct(item.productId)
-                          return (
-                            <div key={item.productId} style={{
-                              display: 'grid', gridTemplateColumns: '32px 1fr',
-                              alignItems: 'center', columnGap: 8,
-                              fontSize: 13, color: 'var(--sub)', padding: '1px 0',
-                            }}>
-                              <span style={{ color: 'var(--text)', fontWeight: 700, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>×{item.qty}</span>
-                              <span>{product?.name ?? item.productId}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
+      ) : (() => {
+        const renderCard = (order) => {
+          const kiosk        = findKiosk(order.kioskId, KIOSKS)
+          const totals       = calcTotals(order.items, inventory)
+          const diffs        = order.status !== 'pending' ? buildAuditDiff(order, distributions) : null
+          const hasRemaining = diffs && diffs.some(d => d.ordered > d.distributed)
+          const borderColor  = order.status === 'invoiced' ? '#16a34a'
+                             : hasRemaining                ? '#f97316'
+                             : order.status === 'distributed' ? '#3b82f6'
+                             : '#f97316'
+          const isFuture = order.date > todayStr
+          const isPast   = order.date < todayStr
+          return (
+            <div className="card" key={order.id} style={{
+              borderLeft: `3px solid ${borderColor}`,
+              background: hasRemaining ? '#fffcf8' : undefined,
+            }}>
+              <div className="item-card-header">
+                <div className="item-card-name">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
+                    <strong>{kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : order.kioskId}</strong>
+                    {hasRemaining
+                      ? <span className="badge badge-warn">partial</span>
+                      : <span className={`badge badge-${order.status}`}>{order.status}</span>
+                    }
+                    {isFuture && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                        {fmtDate(order.date)}
+                      </span>
                     )}
-
-                    {order.notes && <div className="item-card-notes">{order.notes}</div>}
-
-                    {/* Next-step CTA */}
-                    {order.status === 'pending' && (
-                      <button
-                        className="btn btn-secondary"
-                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
-                        onClick={() => onDistribute(order.id)}
-                      >
-                        Distribute now →
-                      </button>
-                    )}
-                    {order.status === 'distributed' && !hasRemaining && (
-                      <button
-                        className="btn btn-secondary"
-                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
-                        onClick={() => onInvoice(order.id)}
-                      >
-                        Generate invoice →
-                      </button>
-                    )}
-                    {hasRemaining && (
-                      <button
-                        className="btn btn-secondary"
-                        style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13, color: '#c2410c', borderColor: '#fed7aa', background: '#fff7ed' }}
-                        onClick={() => onDeliverRemaining(order)}
-                      >
-                        Deliver remaining →
-                      </button>
+                    {isPast && order.date !== todayStr && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e', background: '#fffbeb', padding: '1px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                        {fmtDate(order.date)}
+                      </span>
                     )}
                   </div>
-                )
-              })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <span style={{ fontSize: 13, color: 'var(--sub)', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(totals.total)}</span>
+                    <div style={{ display: 'flex', gap: 3 }}>
+                      {order.status === 'pending' && (
+                        <>
+                          <button className="btn-icon primary" title="Edit" onClick={() => onEdit(order.id)}>
+                            <Icon name="pencil" size={14} />
+                          </button>
+                          <button className="btn-icon success" title="Distribute" onClick={() => onDistribute(order.id)}>
+                            <Icon name="truck" size={14} />
+                          </button>
+                        </>
+                      )}
+                      {hasRemaining && (
+                        <button className="btn-icon primary" title="Edit order" onClick={() => onEdit(order.id)}>
+                          <Icon name="pencil" size={14} />
+                        </button>
+                      )}
+                      {order.status === 'distributed' && !hasRemaining && (
+                        <button className="btn-icon success" title="Generate Invoice" onClick={() => onInvoice(order.id)}>
+                          <Icon name="receipt" size={14} />
+                        </button>
+                      )}
+                      <button className="btn-icon danger" title="Delete" onClick={() => onDelete(order.id)}>
+                        <Icon name="trash" size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {hasRemaining && (
+                  <div style={{ marginTop: 4, fontSize: 12, color: '#c2410c' }}>
+                    Still owed: {diffs.filter(d => d.ordered > d.distributed).map(d => {
+                      const name = findProduct(d.productId)?.name ?? d.productId
+                      return `${name} ×${d.ordered - d.distributed}`
+                    }).join(', ')}
+                  </div>
+                )}
+              </div>
+
+              <button className="card-items-toggle" onClick={() => toggleExpand(order.id)}>
+                <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+                <span className="toggle-chevron">{isExpanded(order.id) ? '▲' : '▼'}</span>
+              </button>
+
+              {isExpanded(order.id) && (
+                <div style={{ margin: '6px 0 4px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {order.items.map(item => {
+                    const product = findProduct(item.productId)
+                    return (
+                      <div key={item.productId} style={{
+                        display: 'grid', gridTemplateColumns: '32px 1fr',
+                        alignItems: 'center', columnGap: 8,
+                        fontSize: 13, color: 'var(--sub)', padding: '1px 0',
+                      }}>
+                        <span style={{ color: 'var(--text)', fontWeight: 700, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>×{item.qty}</span>
+                        <span>{product?.name ?? item.productId}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {order.notes && <div className="item-card-notes">{order.notes}</div>}
+
+              {order.status === 'pending' && (
+                <button className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                  onClick={() => onDistribute(order.id)}>
+                  Distribute now →
+                </button>
+              )}
+              {order.status === 'distributed' && !hasRemaining && (
+                <button className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13 }}
+                  onClick={() => onInvoice(order.id)}>
+                  Generate invoice →
+                </button>
+              )}
+              {hasRemaining && (
+                <button className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 10, fontSize: 13, color: '#c2410c', borderColor: '#fed7aa', background: '#fff7ed' }}
+                  onClick={() => onDeliverRemaining(order)}>
+                  Deliver remaining →
+                </button>
+              )}
             </div>
+          )
+        }
+
+        // In pending view: split into two sections for clarity
+        if (filter === 'pending') {
+          const needsDist  = visible.filter(o => o.status === 'pending')
+          const partials   = visible.filter(o => o.status !== 'pending')
+          return (
+            <>
+              {needsDist.length > 0 && (
+                <div>
+                  {partials.length > 0 && (
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sub)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+                      Needs Distribution
+                    </div>
+                  )}
+                  <div className="card-grid">{needsDist.map(renderCard)}</div>
+                </div>
+              )}
+              {partials.length > 0 && (
+                <div style={{ marginTop: needsDist.length > 0 ? 24 : 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#c2410c', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+                    Partial Delivery — Still Owed
+                  </div>
+                  <div className="card-grid">{partials.map(renderCard)}</div>
+                </div>
+              )}
+            </>
+          )
+        }
+
+        // All other filters: group by date as before
+        return dateGroups.map(({ date, items: group }) => (
+          <div key={date}>
+            <div className="card-grid">{group.map(renderCard)}</div>
           </div>
         ))
-      )}
+      })()}
     </div>
   )
 }
