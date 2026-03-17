@@ -340,10 +340,6 @@ export function BeverageModule() {
             </div>
           </Fragment>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, paddingRight: 4, color: data.connected ? '#16a34a' : '#f59e0b', flexShrink: 0 }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: data.connected ? '#16a34a' : '#f59e0b', display: 'inline-block', flexShrink: 0 }} />
-          {data.connected ? 'Live' : 'Connecting…'}
-        </div>
       </div>
 
       {/* Sidebar + main layout */}
