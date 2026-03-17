@@ -64,7 +64,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
   body { font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif; font-size:12px; color:#1d1d1f; background:#fff; }
 </style></head><body>
 <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px">
-  <img src="${logoSrc}" alt="Time Out Market" style="height:60px;width:auto;object-fit:contain">
+  <img src="${logoSrc}" alt="Time Out Market" style="width:72px;height:72px;object-fit:contain;display:block">
   <div>
     <div style="font-size:22px;font-weight:200;color:#c8c8cc;letter-spacing:5px;text-transform:uppercase;line-height:1;margin-bottom:8px">Distribution Sheet</div>
     <table style="font-size:11px;border-collapse:collapse">
