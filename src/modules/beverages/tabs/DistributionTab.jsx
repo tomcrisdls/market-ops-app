@@ -18,6 +18,75 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
   const [filter,        setFilter]        = useState('all')
   const [expanded,      setExpanded]      = useState({})
 
+  // ── Clean popup print — no app chrome ──────────────────
+  const handlePrintSheet = (dists) => {
+    const list = [...(Array.isArray(dists) ? dists : [dists])].sort((a, b) => a.kioskId.localeCompare(b.kioskId))
+    const date = list[0]?.date
+    const fmt = (s) => { if (!s) return ''; const [y,m,d] = s.split('-'); return `${m}/${d}/${y}` }
+
+    // Grab logo URL from the already-rendered preview img
+    const logoSrc = document.querySelector('[id^="dist-sheet"] img')?.src ?? ''
+
+    const sections = list.map((dist, si) => {
+      const kiosk = findKiosk(dist.kioskId, KIOSKS)
+      const label = kiosk ? `${kiosk.id.replace(/^K0?/, 'K')} · ${kiosk.name}` : dist.kioskId
+      const rows = dist.items.map((item, i) => {
+        const product = findProduct(item.productId)
+        return `<tr style="background:${i%2===0?'#f9f9f9':'#fff'};height:36px">
+          <td style="padding:6px 12px;font-weight:500">${product?.invName ?? item.productId}</td>
+          <td style="padding:6px 12px;text-align:center;font-weight:700;font-size:15px">${item.qty}</td>
+          <td style="padding:6px 12px;text-align:center"><div style="width:22px;height:22px;border:2px solid #ccc;border-radius:4px;margin:0 auto"></div></td>
+        </tr>`
+      }).join('')
+      const divider = si > 0 ? '<div style="border-top:1px solid #e5e7eb;margin:16px 0"></div>' : ''
+      const notes = dist.notes ? `<div style="margin-top:8px;padding:6px 10px;background:#f9f9f9;border-radius:6px;font-size:12px"><strong>Notes:</strong> ${dist.notes}</div>` : ''
+      return `${divider}
+        <div style="margin-bottom:20px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:10px">${label}</div>
+          <table style="width:100%;border-collapse:collapse">
+            <colgroup><col style="width:58%"><col style="width:18%"><col style="width:24%"></colgroup>
+            <thead><tr style="background:#1d1d1f">
+              <th style="padding:7px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#fff;text-align:left">Product</th>
+              <th style="padding:7px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#fff;text-align:center">Cases</th>
+              <th style="padding:7px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#fff;text-align:center">✓ Delivered</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          ${notes}
+        </div>`
+    }).join('')
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Distribution Sheet — ${fmt(date)}</title>
+<style>
+  @page { size: letter; margin: .5in .65in; }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif; font-size:12px; color:#1d1d1f; background:#fff; }
+</style></head><body>
+<div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px">
+  <img src="${logoSrc}" alt="Time Out Market" style="height:60px;width:auto;object-fit:contain">
+  <div>
+    <div style="font-size:22px;font-weight:200;color:#c8c8cc;letter-spacing:5px;text-transform:uppercase;line-height:1;margin-bottom:8px">Distribution Sheet</div>
+    <table style="font-size:11px;border-collapse:collapse">
+      <tr><td style="padding:3px 16px 3px 0;color:#666">Date</td><td>${fmt(date)}</td></tr>
+      ${list.length > 1 ? `<tr><td style="padding:3px 16px 3px 0;color:#666">Kitchens</td><td>${list.length}</td></tr>` : ''}
+    </table>
+  </div>
+</div>
+<div style="border-top:2px solid #e5e7eb;margin-bottom:16px"></div>
+${sections}
+<div style="display:flex;justify-content:space-between;margin-top:36px">
+  <div><div style="margin-bottom:40px;border-bottom:1px solid #ccc;width:160px"></div><div style="font-size:11px;color:#444">Staff Signature</div></div>
+  <div><div style="margin-bottom:40px;border-bottom:1px solid #ccc;width:160px"></div><div style="font-size:11px;color:#444">Confirmed By</div></div>
+</div>
+<script>window.onload=function(){window.print();window.close();}</script>
+</body></html>`
+
+    const win = window.open('', '_blank', 'width=820,height=1060')
+    win.document.write(html)
+    win.document.close()
+  }
+
   const isExpanded   = (id) => expanded[id] === true
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !isExpanded(id) }))
 
@@ -146,7 +215,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                 </span>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn btn-sm btn-ghost" onClick={() => setPrintAllOpen(false)}>Close</button>
-                  <button className="btn btn-sm btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <button className="btn btn-sm btn-primary" onClick={() => handlePrintSheet(distributions)} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Icon name="printer" size={13} /> Print
                   </button>
                 </div>
@@ -280,7 +349,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{kioskLabel} — {fmtDate(dist.date)}</span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn btn-sm btn-ghost" onClick={() => setActivePrintId(null)}>Close</button>
-                    <button className="btn btn-sm btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <button className="btn btn-sm btn-primary" onClick={() => handlePrintSheet([dist])} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <Icon name="printer" size={13} /> Print
                     </button>
                   </div>
