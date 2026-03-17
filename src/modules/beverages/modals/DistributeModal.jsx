@@ -108,7 +108,7 @@ export function DistributeModal({ isOpen, onClose, inventory, orders, preOrderId
     if (isEditMode) {
       onUpdate(editDist.id, editDist.items, items, notes)
     } else {
-      onSave(selectedOrderId || null, kioskId, date, items, notes)
+      onSave(isRemainingMode ? (preItems.orderId ?? null) : (selectedOrderId || null), kioskId, date, items, notes)
     }
     setQtys(Object.fromEntries(PRODUCTS.map(p => [p.id, 0])))
     setNotes('')

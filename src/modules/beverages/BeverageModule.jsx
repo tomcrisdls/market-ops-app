@@ -197,7 +197,7 @@ export function BeverageModule() {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     const tomorrowStr = tomorrow.toISOString().slice(0, 10)
-    setPreDistItems({ kioskId: order.kioskId, items: remaining, defaultDate: tomorrowStr })
+    setPreDistItems({ kioskId: order.kioskId, items: remaining, defaultDate: tomorrowStr, orderId: order.id })
     setDistModalOpen(true)
   }
 
