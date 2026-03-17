@@ -10,6 +10,7 @@ import { supabase } from '../../../lib/supabase'
 export function useBeverageData() {
   const [loading,       setLoading]      = useState(true)
   const [loadError,     setLoadError]    = useState(null)
+  const [connected,     setConnected]    = useState(false)
   const [inventory,     setInvState]     = useState({})
   const [orders,        setOrdersState]  = useState([])
   const [deliveries,    setDelivState]   = useState([])
@@ -88,13 +89,29 @@ export function useBeverageData() {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'deliveries' },      refetchDeliveries)
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'delivery_items' }, refetchDeliveries)
 
-    ch.subscribe()
+    // Track connection status
+    ch.subscribe((status) => {
+      setConnected(status === 'SUBSCRIBED')
+    })
 
     return () => {
       supabase.removeChannel(ch)
       Object.values(timers.current).forEach(clearTimeout)
     }
   }, [debounce])
+
+  // ── Post-mutation DB reconciliation ────────────────────
+  // Re-fetches the three inter-related datasets to guarantee UI matches DB exactly.
+  const syncCore = useCallback(async () => {
+    const [invs, dists, ords] = await Promise.all([
+      db.getInvoices(),
+      db.getDistributions(),
+      db.getOrders(),
+    ])
+    setInvoicesState(invs)
+    setDistState(dists)
+    setOrdersState(ords)
+  }, [])
 
   // ── INVENTORY ──────────────────────────────────────────
   const updateInventoryPrice = useCallback(async (productId, price) => {
@@ -198,10 +215,18 @@ export function useBeverageData() {
     setInvState(inv)
   }, [])
 
-  const deleteDistribution = useCallback(async (id) => {
-    await db.removeDistribution(id)
+  const deleteDistribution = useCallback(async (id, linkedInvoiceId) => {
+    // Optimistic UI
     setDistState(prev => prev.filter(d => d.id !== id))
-  }, [])
+    if (linkedInvoiceId) {
+      setInvoicesState(prev => prev.filter(i => i.id !== linkedInvoiceId))
+    }
+    // DB — delete linked invoice first (FK constraint), then distribution
+    if (linkedInvoiceId) await db.removeInvoice(linkedInvoiceId)
+    await db.removeDistribution(id)
+    // Reconcile to ensure all tabs are consistent
+    await syncCore()
+  }, [syncCore])
 
   const updateDistributionStatus = useCallback(async (id, status) => {
     await db.patchDistributionStatus(id, status)
@@ -224,14 +249,39 @@ export function useBeverageData() {
     setInvoicesState(prev => prev.map(inv => inv.id === id ? { ...inv, status: 'sent' } : inv))
   }, [])
 
-  const deleteInvoice = useCallback(async (id) => {
-    await db.removeInvoice(id)
+  /**
+   * deleteInvoice — cascades to distribution and order status.
+   * cascadeInfo: { distributionId, orderId } — looked up by caller before confirm dialog
+   */
+  const deleteInvoice = useCallback(async (id, cascadeInfo) => {
+    const { distributionId, orderId } = cascadeInfo ?? {}
+
+    // Optimistic UI — revert all related statuses immediately
     setInvoicesState(prev => prev.filter(inv => inv.id !== id))
-  }, [])
+    if (distributionId) {
+      setDistState(prev => prev.map(d =>
+        d.id === distributionId ? { ...d, status: 'pending-invoice' } : d
+      ))
+    }
+    if (orderId) {
+      setOrdersState(prev => prev.map(o =>
+        o.id === orderId ? { ...o, status: 'distributed' } : o
+      ))
+    }
+
+    // DB writes
+    await db.removeInvoice(id)
+    if (distributionId) await db.patchDistributionStatus(distributionId, 'pending-invoice')
+    if (orderId)        await db.patchOrderStatus(orderId, 'distributed')
+
+    // Reconcile from DB to confirm consistency across all tabs
+    await syncCore()
+  }, [syncCore])
 
   return {
     loading,
     loadError,
+    connected,
     inventory,
     orders,
     deliveries,

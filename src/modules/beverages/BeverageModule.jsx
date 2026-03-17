@@ -291,22 +291,32 @@ export function BeverageModule() {
   }
 
   const handleDeleteDist = (id) => {
+    const linkedInvoice = data.invoices.find(i => i.distributionId === id)
     openConfirm({
       title:        'Delete Distribution',
-      message:      'Inventory quantities will NOT be restored. This cannot be undone.',
+      message:      linkedInvoice
+        ? `Invoice ${linkedInvoice.invoiceCode} will also be deleted. Inventory quantities will NOT be restored.`
+        : 'Inventory quantities will NOT be restored. This cannot be undone.',
       confirmLabel: 'Delete',
       variant:      'danger',
-      onConfirm:    () => data.deleteDistribution(id),
+      onConfirm:    () => data.deleteDistribution(id, linkedInvoice?.id ?? null),
     })
   }
 
   const handleDeleteInvoice = (id) => {
+    const inv  = data.invoices.find(i => i.id === id)
+    const dist = inv?.distributionId
+      ? data.distributions.find(d => d.id === inv.distributionId)
+      : null
     openConfirm({
       title:        'Delete Invoice',
-      message:      'This invoice will be permanently removed.',
+      message:      'This invoice will be permanently removed. The distribution will be reset so you can re-generate an invoice.',
       confirmLabel: 'Delete',
       variant:      'danger',
-      onConfirm:    () => data.deleteInvoice(id),
+      onConfirm:    () => data.deleteInvoice(id, {
+        distributionId: inv?.distributionId ?? null,
+        orderId:        dist?.orderId ?? null,
+      }),
     })
   }
 
@@ -330,6 +340,10 @@ export function BeverageModule() {
             </div>
           </Fragment>
         ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, paddingRight: 4, color: data.connected ? '#16a34a' : '#f59e0b', flexShrink: 0 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: data.connected ? '#16a34a' : '#f59e0b', display: 'inline-block', flexShrink: 0 }} />
+          {data.connected ? 'Live' : 'Connecting…'}
+        </div>
       </div>
 
       {/* Sidebar + main layout */}
@@ -413,6 +427,7 @@ export function BeverageModule() {
               invoices={data.invoices}
               inventory={data.inventory}
               distributions={data.distributions}
+              onGoToInvoices={(date) => { setActiveDate(date); setActiveTab('invoices') }}
             />
           )}
         </main>

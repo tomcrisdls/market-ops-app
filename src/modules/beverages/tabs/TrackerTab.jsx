@@ -289,7 +289,7 @@ function ReorderView({ distributions, inventory }) {
 
 // ── Billing view (existing) ───────────────────────────────────────────────────
 
-function BillingView({ invoices }) {
+function BillingView({ invoices, onGoToInvoices }) {
   const now = new Date()
   const [month,   setMonth]   = useState(now.getMonth())
   const [year,    setYear]    = useState(now.getFullYear())
@@ -418,9 +418,28 @@ function BillingView({ invoices }) {
                       else if (item.trackerCategory === 'soda') s += item.amount
                       else if (item.trackerCategory === 'bags') b += item.amount
                     })
+                    const isSent = inv.status === 'sent'
                     return (
                       <tr key={inv.id}>
-                        <td style={{ fontWeight: 500 }}>{inv.invoiceCode}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <button
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600, fontSize: 13, color: 'var(--text)', textDecoration: 'underline', textDecorationColor: 'var(--border)' }}
+                              onClick={() => onGoToInvoices?.(inv.date)}
+                              title="View in Invoices tab"
+                            >
+                              {inv.invoiceCode}
+                            </button>
+                            <span style={{
+                              fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
+                              background: isSent ? '#dcfce7' : '#fef3c7',
+                              color:      isSent ? '#15803d' : '#92400e',
+                              textTransform: 'uppercase', letterSpacing: '0.4px',
+                            }}>
+                              {inv.status}
+                            </span>
+                          </div>
+                        </td>
                         <td>{fmtDate(inv.date)}</td>
                         <td style={{ textAlign: 'right' }}>{w > 0 ? fmtMoney(w) : '—'}</td>
                         <td style={{ textAlign: 'right' }}>{s > 0 ? fmtMoney(s) : '—'}</td>
@@ -436,6 +455,11 @@ function BillingView({ invoices }) {
                     <td style={{ textAlign: 'right' }}>{bagsAmt  > 0 ? fmtMoney(bagsAmt)  : '—'}</td>
                     <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmtMoney(grandTotal)}</td>
                   </tr>
+                  <tr>
+                    <td colSpan={6} style={{ fontSize: 11, color: 'var(--sub-light)', paddingTop: 6, paddingBottom: 2, fontStyle: 'italic' }}>
+                      * Total includes 8.875% tax and bottle deposit where applicable
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -448,7 +472,7 @@ function BillingView({ invoices }) {
 
 // ── Main TrackerTab ───────────────────────────────────────────────────────────
 
-export function TrackerTab({ invoices, inventory, distributions }) {
+export function TrackerTab({ invoices, inventory, distributions, onGoToInvoices }) {
   const [view, setView] = useState('Billing')
 
   return (
@@ -465,7 +489,7 @@ export function TrackerTab({ invoices, inventory, distributions }) {
         ))}
       </div>
 
-      {view === 'Billing'     && <BillingView invoices={invoices} />}
+      {view === 'Billing'     && <BillingView invoices={invoices} onGoToInvoices={onGoToInvoices} />}
       {view === 'Consumption' && <ConsumptionView distributions={distributions} />}
       {view === 'Reorder'     && <ReorderView distributions={distributions} inventory={inventory} />}
     </div>
