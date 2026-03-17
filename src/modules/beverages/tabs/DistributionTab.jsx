@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logoCircular from '../../../assets/logo-circular.png'
 import { KIOSKS } from '../../../lib/constants'
 import { fmtDate, fmtMoney, calcTotals, findKiosk, findProduct } from '../../../lib/utils'
 import { DistributionSheet } from '../components/DistributionSheet'
@@ -24,8 +25,7 @@ export function DistributionTab({ distributions, orders, inventory, onNewDistrib
     const date = list[0]?.date
     const fmt = (s) => { if (!s) return ''; const [y,m,d] = s.split('-'); return `${m}/${d}/${y}` }
 
-    // Grab logo URL from the already-rendered preview img
-    const logoSrc = document.querySelector('[id^="dist-sheet"] img')?.src ?? ''
+    const logoSrc = logoCircular
 
     const sections = list.map((dist, si) => {
       const kiosk = findKiosk(dist.kioskId, KIOSKS)
